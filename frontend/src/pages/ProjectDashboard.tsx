@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/api';
 import NewCampaignModal from '../components/NewCampaignModal';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GearIcon } from '@radix-ui/react-icons';
 
 /**
  * @file ProjectDashboard.tsx
@@ -37,41 +41,54 @@ const ProjectDashboard: React.FC = () => {
   }, []);
 
   const handleCampaignCreated = (newCampaign: Campaign) => {
-    setCampaigns(prevCampaigns => [...prevCampaigns, newCampaign]);
+    setCampaigns((prevCampaigns) => [...prevCampaigns, newCampaign]);
     fetchCampaigns(); // Refetch to ensure data is fresh
   };
 
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1 className="page-title">Saga Weaver</h1>
-        <div>
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <header className="flex justify-between items-center py-4">
+        <h1 className="text-3xl font-bold">Saga Weaver</h1>
+        <div className="flex items-center gap-4">
           <Link to="/settings">
-            <button className="btn-secondary mr-4">
-              Settings
-            </button>
+            <Button variant="outline" size="icon">
+              <GearIcon className="h-5 w-5" />
+            </Button>
           </Link>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="btn-primary"
-          >
-            New Campaign
-          </button>
+          <Button onClick={() => setIsModalOpen(true)}>New Campaign</Button>
         </div>
       </header>
 
-      <main>
-        <h2 className="section-title">Your Campaigns</h2>
+      <main className="mt-6">
+        <h2 className="text-2xl font-semibold mb-4">Your Campaigns</h2>
         {loading ? (
-          <p>Loading campaigns...</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : (
-          <div className="campaign-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {campaigns.map((campaign) => (
               <Link to={`/campaign/${campaign.campaign_id}`} key={campaign.campaign_id}>
-                <div className="card-hover">
-                  <h3 className="text-xl font-bold mb-2">{campaign.name}</h3>
-                  <p className="text-muted">Last Modified: {new Date(campaign.updated_at).toLocaleDateString()}</p>
-                </div>
+                <Card className="hover:shadow-lg transition-shadow duration-200">
+                  <CardHeader>
+                    <CardTitle>{campaign.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Last Modified:{' '}
+                      {new Date(campaign.updated_at).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
               </Link>
             ))}
           </div>

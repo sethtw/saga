@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
 import api from '../api/api';
+import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Label } from './ui/label';
 
 /**
  * @file NewCampaignModal.tsx
@@ -12,7 +24,11 @@ interface NewCampaignModalProps {
   onCampaignCreated: (campaign: any) => void;
 }
 
-const NewCampaignModal: React.FC<NewCampaignModalProps> = ({ isOpen, onClose, onCampaignCreated }) => {
+const NewCampaignModal: React.FC<NewCampaignModalProps> = ({
+  isOpen,
+  onClose,
+  onCampaignCreated,
+}) => {
   const [name, setName] = useState('');
   const [narrativeContext, setNarrativeContext] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -40,59 +56,52 @@ const NewCampaignModal: React.FC<NewCampaignModalProps> = ({ isOpen, onClose, on
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2 className="modal-header">Create New Campaign</h2>
-        {error && <p className="text-error mb-form">{error}</p>}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
-          <div className="mb-form">
-            <label htmlFor="name" className="form-label-mb">
-              Campaign Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="form-input"
-              required
-            />
+          <DialogHeader>
+            <DialogTitle>Create New Campaign</DialogTitle>
+            <DialogDescription>
+              Give your new campaign a name to get started.
+            </DialogDescription>
+          </DialogHeader>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="narrativeContext" className="text-right">
+                Narrative Context
+              </Label>
+              <Textarea
+                id="narrativeContext"
+                value={narrativeContext}
+                onChange={(e) => setNarrativeContext(e.target.value)}
+                className="col-span-3"
+                placeholder="Optional: Describe the story's setting, characters, and plot."
+              />
+            </div>
           </div>
-          <div className="mb-form-lg">
-            <label htmlFor="narrativeContext" className="form-label-mb">
-              Narrative Context (Optional)
-            </label>
-            <textarea
-              id="narrativeContext"
-              rows={4}
-              value={narrativeContext}
-              onChange={(e) => setNarrativeContext(e.target.value)}
-              className="form-input"
-            />
-          </div>
-          <div className="flex-end-space">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary"
-            >
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary"
-            >
-              Create
-            </button>
-          </div>
+            </Button>
+            <Button type="submit">Create</Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

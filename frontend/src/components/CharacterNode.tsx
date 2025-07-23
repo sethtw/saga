@@ -1,6 +1,12 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import withMapElement from './MapElement';
+import {
+  BaseNode,
+  BaseNodeContent,
+  BaseNodeHeader,
+  BaseNodeHeaderTitle,
+} from './base-node';
 
 /**
  * @file CharacterNode.tsx
@@ -14,12 +20,16 @@ interface CharacterNodeData {
 
 const CharacterNode: React.FC<{ data: CharacterNodeData }> = ({ data }) => {
   return (
-    <div className="p-3 max-w-xs">
-      <Handle type="target" position={Position.Left} className="!bg-cyan-500" />
-      <div className="font-bold text-md text-cyan-300">{data.name}</div>
-      <p className="text-sm text-gray-300 mt-1">{data.description}</p>
-      <Handle type="source" position={Position.Right} className="!bg-cyan-500" />
-    </div>
+    <BaseNode>
+      <Handle type="target" position={Position.Left} />
+      <BaseNodeHeader>
+        <BaseNodeHeaderTitle>{data.name}</BaseNodeHeaderTitle>
+      </BaseNodeHeader>
+      <BaseNodeContent>
+        <p className="text-sm text-muted-foreground">{data.description}</p>
+      </BaseNodeContent>
+      <Handle type="source" position={Position.Right} />
+    </BaseNode>
   );
 };
 

@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import { darkTheme, lightTheme, type Theme } from '../styles/themes';
+import { useState, useEffect } from 'react';
 
-export const useTheme = (): [Theme, () => void] => {
+export const useTheme = (): ['dark' | 'light', () => void] => {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const savedTheme = window.localStorage.getItem('theme') as 'dark' | 'light' | null;
     return savedTheme || 'dark';
@@ -13,10 +12,9 @@ export const useTheme = (): [Theme, () => void] => {
 
   useEffect(() => {
     window.localStorage.setItem('theme', theme);
-    document.body.setAttribute('data-theme', theme);
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
   }, [theme]);
 
-  const currentTheme = useMemo(() => (theme === 'light' ? lightTheme : darkTheme), [theme]);
-
-  return [currentTheme, toggleTheme];
+  return [theme, toggleTheme];
 }; 

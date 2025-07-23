@@ -1,40 +1,30 @@
 import React from 'react';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
-/**
- * @file ContextMenu.tsx
- * @description A context menu that appears on right-clicking a map element.
- */
-
-interface ContextMenuProps {
-  x: number;
-  y: number;
-  onClose: () => void;
+interface CustomContextMenuProps {
+  children: React.ReactNode;
   onSelect: (action: string) => void;
 }
 
-const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onSelect }) => {
+const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ children, onSelect }) => {
   return (
-    <div
-      style={{ top: y, left: x }}
-      className="context-menu"
-      onClick={onClose}
-    >
-      <ul className="context-menu-list">
-        <li
-          onClick={() => onSelect('edit-element')}
-          className="context-menu-item"
-        >
+    <ContextMenu>
+      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => onSelect('edit-element')}>
           Edit Element
-        </li>
-        <li
-          onClick={() => onSelect('generate-character')}
-          className="context-menu-item"
-        >
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => onSelect('generate-character')}>
           Generate Character
-        </li>
-      </ul>
-    </div>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 
-export default ContextMenu; 
+export default CustomContextMenu; 

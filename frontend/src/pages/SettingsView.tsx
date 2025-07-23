@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 /**
  * @file SettingsView.tsx
@@ -37,85 +48,81 @@ const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        <header className="mb-10 flex justify-between items-center">
-          <div>
-            <h1 className="page-title">Campaign Settings</h1>
-            <p className="text-muted mt-2">Manage your campaign's high-level details and AI prompt templates.</p>
-          </div>
-          <button
-            onClick={toggleTheme}
-            className="btn-secondary py-2 px-4"
-          >
-            Toggle Theme
-          </button>
-        </header>
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <header className="flex justify-between items-center py-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Campaign Settings</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your campaign's high-level details and AI prompt templates.
+          </p>
+        </div>
+        <Button onClick={toggleTheme} variant="outline">
+          Toggle Theme
+        </Button>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Campaign Details Section */}
-          <div className="card">
-            <h2 className="section-subtitle">General Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="campaignName" className="form-label-mb">
-                  Campaign Name
-                </label>
-                <input
-                  type="text"
-                  id="campaignName"
-                  name="campaignName"
-                  value={formState.campaignName}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
-              <div>
-                <label htmlFor="narrativeContext" className="form-label-mb">
-                  World Description / Narrative Context
-                </label>
-                <textarea
-                  id="narrativeContext"
-                  name="narrativeContext"
-                  rows={5}
-                  value={formState.narrativeContext}
-                  onChange={handleInputChange}
-                  className="form-input"
-                />
-              </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>General Information</CardTitle>
+            <CardDescription>
+              High-level details about your campaign.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="campaignName">Campaign Name</Label>
+              <Input
+                type="text"
+                id="campaignName"
+                name="campaignName"
+                value={formState.campaignName}
+                onChange={handleInputChange}
+              />
             </div>
-          </div>
-
-          {/* Prompt Templates Section */}
-          <div className="card">
-            <h2 className="section-subtitle">LLM Prompt Templates</h2>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="characterPrompt" className="form-label-mb">
-                  Character Generator Prompt
-                </label>
-                <textarea
-                  id="characterPrompt"
-                  name="characterPrompt"
-                  rows={8}
-                  value={formState.characterPrompt}
-                  onChange={handleInputChange}
-                  className="form-input font-mono text-sm"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="narrativeContext">
+                World Description / Narrative Context
+              </Label>
+              <Textarea
+                id="narrativeContext"
+                name="narrativeContext"
+                rows={5}
+                value={formState.narrativeContext}
+                onChange={handleInputChange}
+              />
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="btn-primary py-2 px-6"
-            >
-              Save Settings
-            </button>
-          </div>
-        </form>
-      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>LLM Prompt Templates</CardTitle>
+            <CardDescription>
+              Customize the prompts used for AI generation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="characterPrompt">
+                Character Generator Prompt
+              </Label>
+              <Textarea
+                id="characterPrompt"
+                name="characterPrompt"
+                rows={8}
+                value={formState.characterPrompt}
+                onChange={handleInputChange}
+                className="font-mono text-sm"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button type="submit">Save Settings</Button>
+        </div>
+      </form>
     </div>
   );
 };

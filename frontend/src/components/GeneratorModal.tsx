@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { Label } from './ui/label';
 
 /**
  * @file GeneratorModal.tsx
@@ -12,7 +23,12 @@ interface GeneratorModalProps {
   title: string;
 }
 
-const GeneratorModal: React.FC<GeneratorModalProps> = ({ isOpen, onClose, onSubmit, title }) => {
+const GeneratorModal: React.FC<GeneratorModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  title,
+}) => {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,46 +36,36 @@ const GeneratorModal: React.FC<GeneratorModalProps> = ({ isOpen, onClose, onSubm
     onSubmit(prompt);
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2 className="modal-header">{title}</h2>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
-          <div className="mb-form-lg">
-            <label htmlFor="prompt" className="form-label-mb">
-              Your Prompt
-            </label>
-            <textarea
-              id="prompt"
-              rows={4}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="form-input"
-              placeholder="e.g., A grumpy dwarf blacksmith with a secret."
-            />
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>
+              Enter a prompt to generate a new element.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 items-center gap-4">
+              <Label htmlFor="prompt">Your Prompt</Label>
+              <Textarea
+                id="prompt"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="e.g., A grumpy dwarf blacksmith with a secret."
+              />
+            </div>
           </div>
-          <div className="flex-end-space">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary"
-            >
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary"
-            >
-              Generate
-            </button>
-          </div>
+            </Button>
+            <Button type="submit">Generate</Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

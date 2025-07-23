@@ -5,17 +5,10 @@ import SettingsView from './pages/SettingsView';
 import MapCanvas from './pages/MapCanvas';
 import './index.css';
 import { Toaster } from 'sonner';
-import { useTheme } from './hooks/useTheme';
 
 function App() {
-  const [theme] = useTheme();
   return (
-    <div
-      style={{
-        backgroundColor: theme.primary,
-        color: theme.text,
-      }}
-    >
+    <div className="min-h-screen bg-background text-foreground">
       <Toaster />
       <Routes>
         <Route path="/" element={<ProjectDashboard />} />
