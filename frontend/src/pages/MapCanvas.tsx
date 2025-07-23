@@ -10,7 +10,7 @@ import Flow from '../components/Flow';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
-import { PlusIcon, HomeIcon, DiscIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
+import { HomeIcon, DiscIcon } from '@radix-ui/react-icons';
 import { useHotkeys } from '../hooks/use-hotkeys';
 import {
     AlertDialog,
@@ -23,14 +23,16 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu";
 import { useAutoSave } from '../hooks/useAutoSave';
 import { nanoid } from 'nanoid';
+import FloatingToolbar from '@/components/FloatingToolbar';
+import useHistoryStore from '@/store/historyStore';
+import AlignmentToolbar, { type Alignment } from '@/components/AlignmentToolbar';
 
 // We need a separate component to render the flow so that we can wrap it in a ReactFlowProvider
 const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
@@ -151,6 +153,8 @@ const MapCanvas: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isUnsavedChangesModalOpen, setIsUnsavedChangesModalOpen] = useState(false);
     const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+    const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
+    const [showAlignmentToolbar, setShowAlignmentToolbar] = useState(false);
 
     // By exposing the store through the window, we can access it from anywhere in the app.
     // This is a temporary solution to get the save functionality working again.
@@ -223,6 +227,12 @@ const MapCanvas: React.FC = () => {
         };
       }, [areElementsDirty]);
 
+    useEffect(() => {
+        const { getNodes } = (window as any).reactFlowStore.getState();
+        const selectedNodes = getNodes().filter((n: Node) => n.selected);
+        setShowAlignmentToolbar(selectedNodes.length > 1);
+    }, [useMapStore().nodes]);
+
 
     const handleMenuAction = useCallback(async (action: string) => {
         if (!menu) return;
@@ -247,6 +257,9 @@ const MapCanvas: React.FC = () => {
         }
         setMenu(null);
     }, [menu, deleteNode, updateNodeData, setMenu]);
+
+    const { undo, redo } = useHistoryStore();
+    const { interactionMode, setInteractionMode } = useMapStore();
 
     useHotkeys([
         ['Backspace', async () => {
@@ -273,7 +286,98 @@ const MapCanvas: React.FC = () => {
                 error: 'Failed to delete elements.',
             });
         }, { preventDefault: true }],
+        ['ctrl+c', () => {
+            const { getNodes } = (window as any).reactFlowStore.getState();
+            const selectedNodes = getNodes().filter((n: Node) => n.selected);
+            if (selectedNodes.length > 0) {
+                setCopiedNodes(selectedNodes);
+                toast.info(`Copied ${selectedNodes.length} node(s)`);
+            }
+        }],
+        ['ctrl+v', () => {
+            if (copiedNodes.length > 0) {
+                const newNodes = copiedNodes.map((node) => {
+                    const newNode = {
+                        ...node,
+                        id: nanoid(),
+                        position: {
+                            x: node.position.x + 20,
+                            y: node.position.y + 20,
+                        },
+                        selected: true, // Select the new nodes
+                    };
+                    addNode(newNode);
+                    return newNode;
+                });
+                toast.success(`Pasted ${newNodes.length} node(s)`);
+            }
+        }],
+        ['v', () => {
+            setInteractionMode(interactionMode === 'drag' ? 'pan' : 'drag');
+        }],
+        ['ctrl+z', () => {
+            undo();
+            toast.info('Undo');
+        }, { preventDefault: true }],
+        ['ctrl+y', () => {
+            redo();
+            toast.info('Redo');
+        }, { preventDefault: true }],
     ]);
+
+    const handleAlign = (alignment: Alignment) => {
+        const { getNodes } = (window as any).reactFlowStore.getState();
+        const selectedNodes = getNodes().filter((n: Node) => n.selected);
+
+        if (selectedNodes.length < 2) return;
+
+        useHistoryStore.getState().addPresentToPast();
+
+        const { onNodesChange } = useMapStore.getState();
+
+        let newPositions = new Map<string, { x: number, y: number }>();
+
+        switch (alignment) {
+            case 'align-left': {
+                const minX = Math.min(...selectedNodes.map((n: Node) => n.position.x));
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: minX }));
+                break;
+            }
+            case 'align-horizontal-center': {
+                const centerX = selectedNodes.reduce((sum: number, n: Node) => sum + n.position.x + (n.width ?? 0) / 2, 0) / selectedNodes.length;
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: centerX - (n.width ?? 0) / 2 }));
+                break;
+            }
+            case 'align-right': {
+                const maxX = Math.max(...selectedNodes.map((n: Node) => n.position.x + (n.width ?? 0)));
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: maxX - (n.width ?? 0) }));
+                break;
+            }
+            case 'align-top': {
+                const minY = Math.min(...selectedNodes.map((n: Node) => n.position.y));
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: minY }));
+                break;
+            }
+            case 'align-vertical-center': {
+                const centerY = selectedNodes.reduce((sum: number, n: Node) => sum + n.position.y + (n.height ?? 0) / 2, 0) / selectedNodes.length;
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: centerY - (n.height ?? 0) / 2 }));
+                break;
+            }
+            case 'align-bottom': {
+                const maxY = Math.max(...selectedNodes.map((n: Node) => n.position.y + (n.height ?? 0)));
+                selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: maxY - (n.height ?? 0) }));
+                break;
+            }
+        }
+
+        onNodesChange(selectedNodes.map((n: Node) => ({
+            id: n.id,
+            type: 'position',
+            position: newPositions.get(n.id)!,
+        })));
+
+        toast.success('Nodes aligned');
+    };
 
     const handleSave = useCallback(async () => {
         if (!campaignId) return;
@@ -379,34 +483,24 @@ const MapCanvas: React.FC = () => {
     return (
         <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
             <Toaster />
+            <FloatingToolbar onAddRoom={() => handleAddNode('room')} onAddItem={() => handleAddNode('item')} />
+            {showAlignmentToolbar && <AlignmentToolbar onAlign={handleAlign} />}
             <div className="absolute top-4 left-4 z-10">
-                <NavigationMenu>
-                    <NavigationMenuList>
-                        <NavigationMenuItem>
-                            <NavigationMenuTrigger>Actions</NavigationMenuTrigger>
-                            <NavigationMenuContent>
-                                <div className="flex w-40 flex-col p-2">
-                                    <Button onClick={() => handleAddNode('room')} variant="ghost" className="justify-start">
-                                        <PlusIcon className="mr-2 h-4 w-4" />
-                                        Add Room
-                                    </Button>
-                                    <Button onClick={() => handleAddNode('item')} variant="ghost" className="justify-start">
-                                        <PaperPlaneIcon className="mr-2 h-4 w-4" />
-                                        Add Item
-                                    </Button>
-                                    <Button onClick={handleSave} disabled={isSaving} variant="ghost" className="justify-start">
-                                        <DiscIcon className="mr-2 h-4 w-4" />
-                                        Save
-                                    </Button>
-                                    <Button onClick={handleNavigateHome} variant="ghost" className="justify-start">
-                                        <HomeIcon className="mr-2 h-4 w-4" />
-                                        Home
-                                    </Button>
-                                </div>
-                            </NavigationMenuContent>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">Actions</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleSave} disabled={isSaving}>
+                            <DiscIcon className="mr-2 h-4 w-4" />
+                            Save
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleNavigateHome}>
+                            <HomeIcon className="mr-2 h-4 w-4" />
+                            Home
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
             {isLoading ? (
                 <div className="flex h-full w-full items-center justify-center">
