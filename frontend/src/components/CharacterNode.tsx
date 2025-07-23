@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Handle, Position, NodeResizer } from 'reactflow';
+import React, { memo, useState } from 'react';
+import { Handle, Position, NodeResizer, NodeProps } from 'reactflow';
 import {
   BaseNode,
   BaseNodeContent,
@@ -17,14 +17,18 @@ interface CharacterNodeData {
   description: string;
 }
 
-const CharacterNode: React.FC<{ data: CharacterNodeData, selected: boolean }> = ({ data, selected }) => {
+const CharacterNode: React.FC<NodeProps<CharacterNodeData>> = ({ data, selected }) => {
+  const [isResizing, setIsResizing] = useState(false);
+
   return (
-    <BaseNode>
+    <BaseNode className={isResizing ? 'nodrag' : ''}>
       <NodeResizer
         color="#ff0071"
         isVisible={selected}
         minWidth={180}
         minHeight={100}
+        onResizeStart={() => setIsResizing(true)}
+        onResizeEnd={() => setIsResizing(false)}
       />
       <Handle type="target" position={Position.Left} />
       <BaseNodeHeader>

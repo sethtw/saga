@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Handle, Position, NodeResizer } from 'reactflow';
+import React, { memo, useState } from 'react';
+import { Handle, Position, NodeResizer, NodeProps } from 'reactflow';
 import {
   BaseNode,
   BaseNodeHeader,
@@ -16,14 +16,18 @@ interface RoomNodeData {
   label: string;
 }
 
-const RoomNode: React.FC<{ data: RoomNodeData, selected: boolean }> = ({ data, selected }) => {
+const RoomNode: React.FC<NodeProps<RoomNodeData>> = ({ data, selected }) => {
+  const [isResizing, setIsResizing] = useState(false);
+
   return (
-    <BaseNode>
+    <BaseNode className={isResizing ? 'nodrag' : ''}>
       <NodeResizer
         color="#ff0071"
         isVisible={selected}
         minWidth={100}
         minHeight={50}
+        onResizeStart={() => setIsResizing(true)}
+        onResizeEnd={() => setIsResizing(false)}
       />
       <Handle type="target" position={Position.Top} />
       <BaseNodeHeader>

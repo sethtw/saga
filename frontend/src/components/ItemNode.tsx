@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Handle, Position, type NodeProps, NodeResizer } from 'reactflow';
 import {
   BaseNode,
@@ -8,13 +8,17 @@ import {
 import { PaperPlaneIcon } from '@radix-ui/react-icons';
 
 const ItemNode: React.FC<NodeProps> = ({ data, selected }) => {
+  const [isResizing, setIsResizing] = useState(false);
+
   return (
-    <BaseNode>
+    <BaseNode className={isResizing ? 'nodrag' : ''}>
       <NodeResizer
         color="#ff0071"
         isVisible={selected}
         minWidth={100}
         minHeight={50}
+        onResizeStart={() => setIsResizing(true)}
+        onResizeEnd={() => setIsResizing(false)}
       />
       <Handle type="target" position={Position.Top} />
       <BaseNodeHeader>
