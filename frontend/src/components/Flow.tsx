@@ -8,9 +8,11 @@ import ReactFlow, {
     type Node,
     type Viewport,
     type OnEdgeUpdateFunc,
+    type NodeChange,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useMapStore from '../store/mapStore';
+import useHistoryStore from '../store/historyStore';
 import RoomNode from './RoomNode';
 import CharacterNode from './CharacterNode';
 import ItemNode from './ItemNode';
@@ -48,6 +50,7 @@ const Flow: React.FC<FlowProps> = ({
     onViewportChange,
 }) => {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect, interactionMode } = useMapStore();
+    const { addPresentToPast } = useHistoryStore();
     const { fitView } = useReactFlow();
 
     React.useEffect(() => {
@@ -58,11 +61,36 @@ const Flow: React.FC<FlowProps> = ({
         }
     }, [nodes.length, fitView, savedViewport, setViewport]);
 
+    const handleNodeDragStart = () => {
+        addPresentToPast('Node Drag Start');
+    };
+
+    const handleNodeDragStop = () => {
+        addPresentToPast('Node Drag Stop');
+    };
+
+    const handleSelectionDragStart = () => {
+        addPresentToPast('Selection Drag Start');
+    };
+
+    const handleSelectionDragStop = () => {
+        addPresentToPast('Selection Drag Stop');
+    };
+
+    const handleNodesChange = (changes: NodeChange[]) => {
+        // This is a workaround to capture the end of a resize event.
+        const isResizeEnd = changes.some(change => change.type === 'dimensions' && !change.resizing);
+        if (isResizeEnd) {
+            addPresentToPast('Node Resize');
+        }
+        onNodesChange(changes);
+    };
+
     return (
         <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
+            onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onEdgeUpdate={onEdgeUpdate}
@@ -76,6 +104,10 @@ const Flow: React.FC<FlowProps> = ({
             panOnDrag={interactionMode === 'pan'}
             selectionOnDrag={interactionMode === 'drag'}
             nodesDraggable={interactionMode === 'drag'}
+            onNodeDragStart={handleNodeDragStart}
+            onNodeDragStop={handleNodeDragStop}
+            onSelectionDragStart={handleSelectionDragStart}
+            onSelectionDragStop={handleSelectionDragStop}
         >
             <Controls>
                 <button onClick={() => fitView({ duration: 800 })} className="react-flow__controls-button">

@@ -2,25 +2,31 @@ import { create } from 'zustand';
 import { type Node, type Edge } from 'reactflow';
 import useMapStore from './mapStore';
 
+interface HistoryEntry {
+    nodes: Node[];
+    edges: Edge[];
+    description: string;
+}
+
 interface HistoryState {
-    past: { nodes: Node[], edges: Edge[] }[];
-    future: { nodes: Node[], edges: Edge[] }[];
+    past: HistoryEntry[];
+    future: HistoryEntry[];
 }
 
 interface HistoryActions {
     undo: () => void;
     redo: () => void;
-    addPresentToPast: () => void;
+    addPresentToPast: (description: string) => void;
     clearHistory: () => void;
 }
 
 const useHistoryStore = create<HistoryState & HistoryActions>((set, get) => ({
     past: [],
     future: [],
-    addPresentToPast: () => {
+    addPresentToPast: (description: string) => {
         const { nodes, edges } = useMapStore.getState();
         set(state => ({
-            past: [...state.past, { nodes, edges }],
+            past: [...state.past, { nodes, edges, description }],
             future: [], // Clear future when a new state is added
         }));
     },
@@ -33,7 +39,7 @@ const useHistoryStore = create<HistoryState & HistoryActions>((set, get) => ({
 
         set({
             past: past.slice(0, past.length - 1),
-            future: [{ nodes: presentNodes, edges: presentEdges }, ...get().future],
+            future: [{ nodes: presentNodes, edges: presentEdges, description: 'Present State' }, ...get().future],
         });
 
         useMapStore.getState().setNodes(previousState.nodes);
@@ -47,7 +53,7 @@ const useHistoryStore = create<HistoryState & HistoryActions>((set, get) => ({
         const nextState = future[0];
 
         set({
-            past: [...get().past, { nodes: presentNodes, edges: presentEdges }],
+            past: [...get().past, { nodes: presentNodes, edges: presentEdges, description: 'Present State' }],
             future: future.slice(1),
         });
 

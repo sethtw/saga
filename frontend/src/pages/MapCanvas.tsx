@@ -33,6 +33,9 @@ import { nanoid } from 'nanoid';
 import FloatingToolbar from '@/components/FloatingToolbar';
 import useHistoryStore from '@/store/historyStore';
 import AlignmentToolbar, { type Alignment } from '@/components/AlignmentToolbar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { UndoIcon, RedoIcon, HistoryIcon } from 'lucide-react';
 
 // We need a separate component to render the flow so that we can wrap it in a ReactFlowProvider
 const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
@@ -157,6 +160,8 @@ const MapCanvas: React.FC = () => {
     const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
     const [showAlignmentToolbar, setShowAlignmentToolbar] = useState(false);
 
+    const { past, future, undo, redo } = useHistoryStore();
+
     // By exposing the store through the window, we can access it from anywhere in the app.
     // This is a temporary solution to get the save functionality working again.
     const store = useStoreApi();
@@ -259,7 +264,6 @@ const MapCanvas: React.FC = () => {
         setMenu(null);
     }, [menu, deleteNode, updateNodeData, setMenu]);
 
-    const { undo, redo } = useHistoryStore();
     const { interactionMode, setInteractionMode } = useMapStore();
 
     useHotkeys([
@@ -332,7 +336,7 @@ const MapCanvas: React.FC = () => {
 
         if (selectedNodes.length < 2) return;
 
-        useHistoryStore.getState().addPresentToPast();
+        useHistoryStore.getState().addPresentToPast(`Aligned nodes: ${alignment}`);
 
         const { onNodesChange } = useMapStore.getState();
 
@@ -484,7 +488,7 @@ const MapCanvas: React.FC = () => {
             <Toaster />
             <FloatingToolbar onAddRoom={() => handleAddNode('room')} onAddItem={() => handleAddNode('item')} />
             {showAlignmentToolbar && <AlignmentToolbar onAlign={handleAlign} />}
-            <div className="absolute top-4 left-4 z-10">
+            <div className="absolute top-4 left-4 z-10 flex space-x-2">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">Actions</Button>
@@ -500,6 +504,44 @@ const MapCanvas: React.FC = () => {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <Button variant="outline" onClick={undo} disabled={past.length === 0}>
+                    <UndoIcon className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={redo} disabled={future.length === 0}>
+                    <RedoIcon className="h-4 w-4" />
+                </Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" disabled={past.length === 0 && future.length === 0}>
+                            <HistoryIcon className="h-4 w-4" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">History</h4>
+                                <p className="text-sm text-muted-foreground">
+                                    Review past actions and states.
+                                </p>
+                            </div>
+                            <ScrollArea className="h-72">
+                                <div className="grid gap-2">
+                                    {future.slice().reverse().map((_, index) => (
+                                        <div key={`future-${index}`} className="text-sm font-semibold text-primary">
+                                            Future State {future.length - index}
+                                        </div>
+                                    ))}
+                                    <div className="text-sm font-semibold text-destructive">Current State</div>
+                                    {past.slice().reverse().map((_, index) => (
+                                        <div key={`past-${index}`} className="text-sm">
+                                            Past State {past.length - index}
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </div>
             {isLoading ? (
                 <div className="flex h-full w-full items-center justify-center">
