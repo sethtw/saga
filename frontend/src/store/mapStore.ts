@@ -49,7 +49,8 @@ type MapState = {
   nodes: Node[];
   edges: Edge[];
   menu: { x: number, y: number, node: Node } | null;
-  isDirty: boolean;
+  areElementsDirty: boolean;
+  isViewportDirty: boolean;
   // Original state for change tracking
   originalNodes: Node[];
   originalEdges: Edge[];
@@ -70,7 +71,8 @@ type MapActions = {
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
   setMenu: (menu: { x: number, y: number, node: Node } | null) => void;
-  setDirty: (isDirty: boolean) => void;
+  setElementsDirty: (isDirty: boolean) => void;
+  setViewportDirty: (isDirty: boolean) => void;
   // Change tracking methods
   loadOriginalState: (nodes: Node[], edges: Edge[]) => void;
   getChangedElements: () => {
@@ -111,7 +113,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         nodes: newNodes,
-        isDirty: true,
+        areElementsDirty: true,
         changes: changeTracker,
       });
     },
@@ -137,7 +139,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         edges: newEdges,
-        isDirty: true,
+        areElementsDirty: true,
         changes: changeTracker,
       });
     },
@@ -151,7 +153,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         edges: newEdges,
-        isDirty: true,
+        areElementsDirty: true,
         changes,
       });
     },
@@ -175,7 +177,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         edges: newEdges,
-        isDirty: true,
+        areElementsDirty: true,
         changes: changeTracker,
       });
     },
@@ -187,7 +189,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         nodes: [...currentNodes, node],
-        isDirty: true,
+        areElementsDirty: true,
         changes,
       });
     },
@@ -195,13 +197,15 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       set({ nodes });
     },
     setEdges: (edges) => {
-      const { deleteEdge } = get();
+      const { deleteEdge, changes } = get();
       set({
         edges: edges.map((edge) => ({
           ...edge,
           type: 'custom',
           data: { ...edge.data, deleteEdge },
         })),
+        areElementsDirty: true,
+        changes,
       });
     },
     updateNodeData: (nodeId, data) => {
@@ -220,7 +224,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
           }
           return node;
         }),
-        isDirty: true,
+        areElementsDirty: true,
         changes,
       });
     },
@@ -244,7 +248,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       set({ 
         nodes: newNodes, 
         edges: newEdges, 
-        isDirty: true,
+        areElementsDirty: true,
         changes,
       });
     },
@@ -262,15 +266,18 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       
       set({
         edges: currentEdges.filter((e) => e.id !== edgeId),
-        isDirty: true,
+        areElementsDirty: true,
         changes,
       });
     },
     setMenu: (menu) => {
       set({ menu });
     },
-    setDirty: (isDirty) => {
-      set({ isDirty });
+    setElementsDirty: (isDirty) => {
+      set({ areElementsDirty: isDirty });
+    },
+    setViewportDirty: (isDirty) => {
+        set({ isViewportDirty: isDirty });
     },
     loadOriginalState: (nodes: Node[], edges: Edge[]) => {
       set({
@@ -284,6 +291,8 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
           updatedEdges: new Set(),
           deletedEdges: new Set(),
         },
+        areElementsDirty: false,
+        isViewportDirty: false,
       });
     },
     getChangedElements: () => {
@@ -354,7 +363,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
           updatedEdges: new Set(),
           deletedEdges: new Set(),
         },
-        isDirty: false,
+        areElementsDirty: false,
       });
     },
   };
@@ -363,7 +372,8 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
     nodes: [],
     edges: [],
     menu: null,
-    isDirty: false,
+    areElementsDirty: false,
+    isViewportDirty: false,
     originalNodes: [],
     originalEdges: [],
     changes: {

@@ -9,6 +9,10 @@ import ReactFlow, {
     type Viewport,
     type Edge,
     type Connection,
+    type OnNodesChange,
+    type OnEdgesChange,
+    type OnConnect,
+    type OnEdgeUpdateFunc,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useMapStore from '../store/mapStore';
@@ -32,9 +36,10 @@ interface FlowProps {
     getViewport: () => Viewport;
     setViewport: (viewport: Viewport) => void;
     savedViewport: Viewport | null;
-    onEdgeUpdate: (oldEdge: Edge, newConnection: Connection) => void;
+    onEdgeUpdate: OnEdgeUpdateFunc;
     onEdgeUpdateStart: () => void;
     onEdgeUpdateEnd: () => void;
+    onViewportChange: () => void;
 }
 
 const Flow: React.FC<FlowProps> = ({
@@ -45,6 +50,7 @@ const Flow: React.FC<FlowProps> = ({
     onEdgeUpdate,
     onEdgeUpdateStart,
     onEdgeUpdateEnd,
+    onViewportChange,
 }) => {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect } = useMapStore();
     const { fitView } = useReactFlow();
@@ -70,6 +76,7 @@ const Flow: React.FC<FlowProps> = ({
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             onNodeContextMenu={onNodeContextMenu}
+            onMove={onViewportChange}
         >
             <Controls />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />

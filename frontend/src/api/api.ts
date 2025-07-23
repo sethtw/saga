@@ -78,14 +78,16 @@ export const api = {
         return response.json();
     },
 
-    createElement: async (element: { campaign_id: number, type: string, data: any, position: { x: number, y: number }}) => {
-        const response = await fetch('/api/elements', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(element),
-        });
-        return response.json();
-    },
+    // This function is no longer needed, as element creation is now handled on the client-side
+    // and persisted through the sync endpoint.
+    // createElement: async (element: { campaign_id: number, type: string, data: any, position: { x: number, y: number }}) => {
+    //     const response = await fetch('/api/elements', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify(element),
+    //     });
+    //     return response.json();
+    // },
 
     updateElement: async (id: string, data: Partial<Node>) => {
         const response = await fetch(`/api/elements/${id}`, {

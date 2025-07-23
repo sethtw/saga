@@ -8,12 +8,12 @@ interface AutoSaveOptions {
 }
 
 export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
-    const { nodes, edges, isDirty, setDirty, getChangedElements, clearChanges } = useMapStore();
+    const { nodes, edges, areElementsDirty, setElementsDirty, getChangedElements, clearChanges } = useMapStore();
     const { autoSaveEnabled, autoSaveInterval } = useSettingsStore();
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (autoSaveEnabled && isDirty) {
+        if (autoSaveEnabled && areElementsDirty) {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
@@ -35,7 +35,7 @@ export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
                 
                 // Only reset dirty flag if auto-save is enabled
                 if (autoSaveEnabled) {
-                    setDirty(false);
+                    setElementsDirty(false);
                 }
             }, autoSaveInterval);
         }
@@ -45,5 +45,5 @@ export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [nodes, edges, isDirty, autoSaveEnabled, autoSaveInterval, onSave, setDirty, getChangedElements, clearChanges]);
+    }, [nodes, edges, areElementsDirty, autoSaveEnabled, autoSaveInterval, onSave, setElementsDirty, getChangedElements, clearChanges]);
 }; 

@@ -30,6 +30,7 @@ import {
     NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { useAutoSave } from '../hooks/useAutoSave';
+import { nanoid } from 'nanoid';
 
 // We need a separate component to render the flow so that we can wrap it in a ReactFlowProvider
 const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
@@ -38,6 +39,7 @@ const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
         onEdgeUpdateStart,
         onEdgeUpdateEnd,
         setMenu,
+        setViewportDirty,
     } = useMapStore();
     const [savedViewport, _setSavedViewport] = useState<Viewport | null>(null);
     const { getViewport, setViewport } = useReactFlow();
@@ -116,6 +118,7 @@ const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
                 onEdgeUpdate={onEdgeUpdate}
                 onEdgeUpdateStart={onEdgeUpdateStart}
                 onEdgeUpdateEnd={onEdgeUpdateEnd}
+                onViewportChange={() => setViewportDirty(true)}
             />
         </div>
     );
@@ -136,7 +139,8 @@ const MapCanvas: React.FC = () => {
         loadOriginalState,
         getChangedElements,
         clearChanges,
-        isDirty,
+        areElementsDirty,
+        isViewportDirty,
     } = useMapStore();
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -205,7 +209,7 @@ const MapCanvas: React.FC = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-          if (isDirty) {
+          if (areElementsDirty) {
             event.preventDefault();
             event.returnValue = "You have unsaved changes. Are you sure you want to leave?";
             return "You have unsaved changes. Are you sure you want to leave?";
@@ -217,7 +221,7 @@ const MapCanvas: React.FC = () => {
         return () => {
           window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-      }, [isDirty]);
+      }, [areElementsDirty]);
 
 
     const handleMenuAction = useCallback(async (action: string) => {
@@ -317,19 +321,12 @@ const MapCanvas: React.FC = () => {
 
         try {
             setIsGeneratorOpen(false);
-            const response = await api.createElement({
-                campaign_id: parseInt(campaignId!),
-                type: 'character',
-                data: { prompt },
-                position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
-            });
 
-            const newCharacter = response;
             const newNode: Node = {
-                id: newCharacter.id.toString(),
+                id: nanoid(),
                 type: 'character',
                 position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
-                data: newCharacter.data as { name: string; description: string },
+                data: { prompt },
                 parentId: menu.node.id,
                 extent: 'parent',
             };
@@ -356,14 +353,8 @@ const MapCanvas: React.FC = () => {
             : { name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` };
 
         try {
-            const newElement = await api.createElement({
-                campaign_id: parseInt(campaignId!),
-                type,
-                data,
-                position,
-            });
             const newNode: Node = {
-                id: newElement.id.toString(),
+                id: nanoid(),
                 type,
                 position,
                 data,
@@ -377,13 +368,13 @@ const MapCanvas: React.FC = () => {
     }, [addNode, campaignId]);
 
     const handleNavigateHome = useCallback(() => {
-        if (isDirty) {
+        if (areElementsDirty) {
             setPendingNavigation(() => () => navigate('/'));
             setIsUnsavedChangesModalOpen(true);
         } else {
             navigate('/');
         }
-    }, [isDirty, navigate]);
+    }, [areElementsDirty, navigate]);
 
     return (
         <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
