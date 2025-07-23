@@ -143,6 +143,7 @@ const MapCanvas: React.FC = () => {
         clearChanges,
         areElementsDirty,
         isViewportDirty,
+        setViewportDirty,
     } = useMapStore();
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -166,7 +167,7 @@ const MapCanvas: React.FC = () => {
 
     // Enhanced auto-save with efficient synchronization
     useAutoSave({
-        onSave: async (nodes, edges) => {
+        onSave: async () => {
             if (campaignId) {
                 try {
                     const changes = getChangedElements();
@@ -213,7 +214,7 @@ const MapCanvas: React.FC = () => {
 
     useEffect(() => {
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-          if (areElementsDirty) {
+          if (areElementsDirty || isViewportDirty) {
             event.preventDefault();
             event.returnValue = "You have unsaved changes. Are you sure you want to leave?";
             return "You have unsaved changes. Are you sure you want to leave?";
@@ -225,7 +226,7 @@ const MapCanvas: React.FC = () => {
         return () => {
           window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-      }, [areElementsDirty]);
+      }, [areElementsDirty, isViewportDirty]);
 
     useEffect(() => {
         const { getNodes } = (window as any).reactFlowStore.getState();
@@ -387,19 +388,17 @@ const MapCanvas: React.FC = () => {
                 // Use the new efficient sync system
                 const changes = getChangedElements();
                 
-                if (changes.addedNodes.length > 0 || 
-                    changes.updatedNodes.length > 0 || 
-                    changes.deletedNodeIds.length > 0 ||
-                    changes.addedEdges.length > 0 || 
-                    changes.updatedEdges.length > 0 || 
-                    changes.deletedEdgeIds.length > 0) {
+                if (areElementsDirty) {
                     
                     await api.syncChanges(parseInt(campaignId), changes);
                     clearChanges();
                 }
 
-                // Save the viewport using the window-exposed save function
-                await (window as any).saveViewport();
+                if (isViewportDirty) {
+                    // Save the viewport using the window-exposed save function
+                    await (window as any).saveViewport();
+                    setViewportDirty(false);
+                }
                 
                 resolve();
             } catch (error) {
@@ -415,7 +414,7 @@ const MapCanvas: React.FC = () => {
             success: 'Map state saved successfully!',
             error: 'Failed to save map state.',
         });
-    }, [campaignId, getChangedElements, clearChanges]);
+    }, [campaignId, getChangedElements, clearChanges, areElementsDirty, isViewportDirty, setViewportDirty]);
 
     const handleGenerateSubmit = useCallback(async (prompt: string) => {
         if (!menu) return;
@@ -444,7 +443,7 @@ const MapCanvas: React.FC = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [addNode, menu, campaignId]);
+    }, [addNode, menu]);
 
     const handleAddNode = useCallback(async (type: 'room' | 'item' = 'room') => {
         const position = {
@@ -469,16 +468,16 @@ const MapCanvas: React.FC = () => {
             console.error(`Failed to create ${type}:`, error);
             toast.error(`Failed to create ${type}. Please try again.`);
         }
-    }, [addNode, campaignId]);
+    }, [addNode]);
 
     const handleNavigateHome = useCallback(() => {
-        if (areElementsDirty) {
+        if (areElementsDirty || isViewportDirty) {
             setPendingNavigation(() => () => navigate('/'));
             setIsUnsavedChangesModalOpen(true);
         } else {
             navigate('/');
         }
-    }, [areElementsDirty, navigate]);
+    }, [areElementsDirty, isViewportDirty, navigate]);
 
     return (
         <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>

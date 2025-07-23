@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactFlow, {
     Controls,
     Background,
@@ -7,11 +7,6 @@ import ReactFlow, {
     BackgroundVariant,
     type Node,
     type Viewport,
-    type Edge,
-    type Connection,
-    type OnNodesChange,
-    type OnEdgesChange,
-    type OnConnect,
     type OnEdgeUpdateFunc,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -20,7 +15,6 @@ import RoomNode from './RoomNode';
 import CharacterNode from './CharacterNode';
 import ItemNode from './ItemNode';
 import CustomEdge from './CustomEdge';
-import { useHotkeys } from '../hooks/use-hotkeys';
 
 const nodeTypes = {
     room: RoomNode,

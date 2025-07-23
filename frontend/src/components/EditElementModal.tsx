@@ -52,7 +52,7 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
     setError(null);
 
     try {
-      const response = await api.updateElement(node.id, {
+      await api.updateElement(node.id, {
         data: formData,
       });
       // Pass the formData directly instead of response.data.data
