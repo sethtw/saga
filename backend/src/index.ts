@@ -26,9 +26,9 @@ app.get("/api/health", (req: Request, res: Response) => {
 });
 
 // Use the routers
-app.use('/api', campaignRouter);
-app.use('/api', generateRouter);
-app.use('/api', elementsRouter);
+app.use('/api/campaigns', campaignRouter);
+app.use('/api/generate', generateRouter);
+app.use('/api/elements', elementsRouter);
 
 
 app.listen(port, () => {

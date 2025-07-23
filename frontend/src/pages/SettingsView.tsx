@@ -1,130 +1,48 @@
-import React, { useState } from 'react';
-import { useTheme } from '../hooks/useTheme';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React from 'react';
+import useSettingsStore from '../store/settingsStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-
-/**
- * @file SettingsView.tsx
- * @description This component provides a form for users to edit high-level campaign settings.
- * It could be rendered as a standalone page or within a modal.
- */
-
-interface SettingsForm {
-  campaignName: string;
-  narrativeContext: string;
-  characterPrompt: string;
-}
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 
 const SettingsView: React.FC = () => {
-  const [, toggleTheme] = useTheme();
-  const [formState, setFormState] = useState<SettingsForm>({
-    campaignName: 'The Lost Mines of Phandelver',
-    narrativeContext: 'A classic high-fantasy world with dragons, elves, and dwarves. The story is set in the region of the Sword Coast, a place of adventure and peril.',
-    characterPrompt: "Generate a TTRPG character. Return a JSON object with keys: 'name', 'description', 'stats'. Here is the context: ... Here is the user request: ...",
-  });
+    const {
+        autoSaveEnabled,
+        autoSaveInterval,
+        setAutoSaveEnabled,
+        setAutoSaveInterval,
+    } = useSettingsStore();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormState(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real application, this would send the updated settings to the backend.
-    console.log('Updated Settings:', formState);
-    alert('Settings saved!');
-  };
-
-  return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <header className="flex justify-between items-center py-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Campaign Settings</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your campaign's high-level details and AI prompt templates.
-          </p>
+    return (
+        <div className="container mx-auto p-4">
+            <h1 className="text-2xl font-bold mb-4">Settings</h1>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Auto-Save</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="auto-save-enabled">Enable Auto-Save</Label>
+                        <Switch
+                            id="auto-save-enabled"
+                            checked={autoSaveEnabled}
+                            onCheckedChange={setAutoSaveEnabled}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="auto-save-interval">Auto-Save Interval (ms)</Label>
+                        <Input
+                            id="auto-save-interval"
+                            type="number"
+                            value={autoSaveInterval}
+                            onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
+                            disabled={!autoSaveEnabled}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-        <Button onClick={toggleTheme} variant="outline">
-          Toggle Theme
-        </Button>
-      </header>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>General Information</CardTitle>
-            <CardDescription>
-              High-level details about your campaign.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="campaignName">Campaign Name</Label>
-              <Input
-                type="text"
-                id="campaignName"
-                name="campaignName"
-                value={formState.campaignName}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="narrativeContext">
-                World Description / Narrative Context
-              </Label>
-              <Textarea
-                id="narrativeContext"
-                name="narrativeContext"
-                rows={5}
-                value={formState.narrativeContext}
-                onChange={handleInputChange}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>LLM Prompt Templates</CardTitle>
-            <CardDescription>
-              Customize the prompts used for AI generation.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="characterPrompt">
-                Character Generator Prompt
-              </Label>
-              <Textarea
-                id="characterPrompt"
-                name="characterPrompt"
-                rows={8}
-                value={formState.characterPrompt}
-                onChange={handleInputChange}
-                className="font-mono text-sm"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button type="submit">Save Settings</Button>
-        </div>
-      </form>
-    </div>
-  );
+    );
 };
 
 export default SettingsView; 

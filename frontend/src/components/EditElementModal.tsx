@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { type Node } from 'reactflow';
-import api from '../api/api';
+import { api } from '../api/api';
 import {
   Dialog,
   DialogContent,
@@ -52,7 +52,7 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
     setError(null);
 
     try {
-      const response = await api.put(`/elements/${node.id}`, {
+      const response = await api.updateElement(parseInt(node.id), {
         data: formData,
       });
       onSave(node.id, response.data.data);
@@ -69,13 +69,13 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
         return (
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="label" className="text-right">
-                Room Name
+              <Label htmlFor="name" className="text-right">
+                Name
               </Label>
               <Input
-                id="label"
-                name="label"
-                value={formData.label || ''}
+                id="name"
+                name="name"
+                value={formData.name || ''}
                 onChange={handleInputChange}
                 className="col-span-3"
               />
@@ -105,6 +105,23 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
                 id="description"
                 name="description"
                 value={formData.description || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+        );
+      case 'item':
+        return (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Item Name
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name || ''}
                 onChange={handleInputChange}
                 className="col-span-3"
               />

@@ -1,6 +1,5 @@
-import React from 'react';
-import { Handle, Position } from 'reactflow';
-import withMapElement from './MapElement';
+import React, { memo } from 'react';
+import { Handle, Position, NodeResizer } from 'reactflow';
 import {
   BaseNode,
   BaseNodeHeader,
@@ -17,9 +16,15 @@ interface RoomNodeData {
   label: string;
 }
 
-const RoomNode: React.FC<{ data: RoomNodeData }> = ({ data }) => {
+const RoomNode: React.FC<{ data: RoomNodeData, selected: boolean }> = ({ data, selected }) => {
   return (
     <BaseNode>
+      <NodeResizer
+        color="#ff0071"
+        isVisible={selected}
+        minWidth={100}
+        minHeight={50}
+      />
       <Handle type="target" position={Position.Top} />
       <BaseNodeHeader>
         <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
@@ -29,4 +34,4 @@ const RoomNode: React.FC<{ data: RoomNodeData }> = ({ data }) => {
   );
 };
 
-export default withMapElement(RoomNode); 
+export default memo(RoomNode); 

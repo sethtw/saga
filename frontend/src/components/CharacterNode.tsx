@@ -1,6 +1,5 @@
-import React from 'react';
-import { Handle, Position } from 'reactflow';
-import withMapElement from './MapElement';
+import React, { memo } from 'react';
+import { Handle, Position, NodeResizer } from 'reactflow';
 import {
   BaseNode,
   BaseNodeContent,
@@ -18,9 +17,15 @@ interface CharacterNodeData {
   description: string;
 }
 
-const CharacterNode: React.FC<{ data: CharacterNodeData }> = ({ data }) => {
+const CharacterNode: React.FC<{ data: CharacterNodeData, selected: boolean }> = ({ data, selected }) => {
   return (
     <BaseNode>
+      <NodeResizer
+        color="#ff0071"
+        isVisible={selected}
+        minWidth={180}
+        minHeight={100}
+      />
       <Handle type="target" position={Position.Left} />
       <BaseNodeHeader>
         <BaseNodeHeaderTitle>{data.name}</BaseNodeHeaderTitle>
@@ -33,4 +38,4 @@ const CharacterNode: React.FC<{ data: CharacterNodeData }> = ({ data }) => {
   );
 };
 
-export default withMapElement(CharacterNode); 
+export default memo(CharacterNode); 

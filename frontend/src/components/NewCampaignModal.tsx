@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../api/api';
+import { api } from '../api/api';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -43,12 +43,11 @@ const NewCampaignModal: React.FC<NewCampaignModalProps> = ({
     }
 
     try {
-      const response = await api.post('/campaigns', {
+      const newCampaign = await api.createCampaign({
         name,
-        narrative_context: narrativeContext,
-        user_id: 1, // This would be dynamic in a real app
+        description: narrativeContext,
       });
-      onCampaignCreated(response.data);
+      onCampaignCreated(newCampaign);
       onClose();
     } catch (err) {
       setError('Failed to create campaign. Please try again.');

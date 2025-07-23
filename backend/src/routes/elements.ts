@@ -8,6 +8,8 @@ interface Node {
   position: { x: number; y: number };
   data: any;
   parentNode?: string;
+  width?: number;
+  height?: number;
 }
 
 interface Edge {
@@ -51,11 +53,11 @@ router.post('/campaigns/:campaignId/elements', async (req: Request, res: Respons
 
     // Insert all nodes
     for (const node of nodes) {
-      const { id, type, position, data, parentNode } = node;
+      const { id, type, position, data, parentNode, width, height } = node;
       await client.query(
-        `INSERT INTO MapElements (element_id, campaign_id, type, position_x, position_y, data, parent_element_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [id, campaignId, type, position.x, position.y, data, parentNode]
+        `INSERT INTO MapElements (element_id, campaign_id, type, position_x, position_y, data, parent_element_id, width, height)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [id, campaignId, type, position.x, position.y, data, parentNode, width, height]
       );
     }
     
@@ -84,7 +86,7 @@ router.post('/campaigns/:campaignId/elements', async (req: Request, res: Respons
 // PUT /api/elements/:elementId - Update a specific map element
 router.put('/elements/:elementId', async (req: Request, res: Response) => {
   const { elementId } = req.params;
-  const { data } = req.body; // Assuming the body contains the new data for the element
+  const { data, width, height } = req.body;
 
   if (!data) {
     return res.status(400).json({ error: 'No data provided for update.' });
@@ -92,8 +94,8 @@ router.put('/elements/:elementId', async (req: Request, res: Response) => {
 
   try {
     const { rows } = await pool.query(
-      'UPDATE MapElements SET data = $1, updated_at = NOW() WHERE element_id = $2 RETURNING *',
-      [data, elementId]
+      'UPDATE MapElements SET data = $1, width = $2, height = $3, updated_at = NOW() WHERE element_id = $4 RETURNING *',
+      [data, width, height, elementId]
     );
 
     if (rows.length === 0) {
@@ -106,5 +108,39 @@ router.put('/elements/:elementId', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// DELETE /api/elements/:elementId - Delete a specific map element
+router.delete('/elements/:elementId', async (req: Request, res: Response) => {
+  const { elementId } = req.params;
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // First, delete any links connected to this element to maintain foreign key constraints
+    await client.query('DELETE FROM MapLinks WHERE source_element_id = $1 OR target_element_id = $1', [elementId]);
+
+    // Then, delete the element itself
+    const deleteRes = await client.query('DELETE FROM MapElements WHERE element_id = $1', [elementId]);
+
+    if (deleteRes.rowCount === 0) {
+      // If no rows were deleted, the element was not found. We might still want to commit
+      // the transaction if links were deleted, so we don't roll back here.
+      await client.query('COMMIT');
+      return res.status(404).json({ error: 'Element not found.' });
+    }
+
+    await client.query('COMMIT');
+    res.status(204).send(); // 204 No Content is a good choice for a successful deletion
+  
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(`Failed to delete element ${elementId}:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+});
+
 
 export default router; 

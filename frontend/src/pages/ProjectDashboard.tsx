@@ -1,23 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api/api';
+import { api } from '../api/api';
 import NewCampaignModal from '../components/NewCampaignModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GearIcon } from '@radix-ui/react-icons';
+import { Campaign } from '../types/campaign';
 
 /**
  * @file ProjectDashboard.tsx
  * @description This component serves as the main entry point for users.
  * It displays a list of existing campaigns and provides an option to create a new one.
  */
-
-interface Campaign {
-  campaign_id: string;
-  name: string;
-  updated_at: string;
-}
 
 const ProjectDashboard: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -27,8 +22,8 @@ const ProjectDashboard: React.FC = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/campaigns');
-      setCampaigns(response.data);
+      const fetchedCampaigns = await api.getCampaigns();
+      setCampaigns(fetchedCampaigns);
     } catch (error) {
       console.error('Failed to fetch campaigns:', error);
     } finally {
@@ -74,10 +69,10 @@ const ProjectDashboard: React.FC = () => {
               </Card>
             ))}
           </div>
-        ) : (
+        ) : campaigns.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {campaigns.map((campaign) => (
-              <Link to={`/campaign/${campaign.campaign_id}`} key={campaign.campaign_id}>
+              <Link to={`/campaign/${campaign.id}`} key={campaign.id}>
                 <Card className="hover:shadow-lg transition-shadow duration-200">
                   <CardHeader>
                     <CardTitle>{campaign.name}</CardTitle>
@@ -85,12 +80,20 @@ const ProjectDashboard: React.FC = () => {
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
                       Last Modified:{' '}
-                      {new Date(campaign.updated_at).toLocaleDateString()}
+                      {new Date(campaign.created_at).toLocaleDateString()}
                     </p>
                   </CardContent>
                 </Card>
               </Link>
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+              <h3 className="text-lg font-semibold">No campaigns yet!</h3>
+              <p className="text-muted-foreground mt-2 mb-4">
+                  Get started by creating a new campaign.
+              </p>
+              <Button onClick={() => setIsModalOpen(true)}>Create New Campaign</Button>
           </div>
         )}
       </main>

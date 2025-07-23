@@ -1,29 +1,39 @@
 import React from 'react';
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface CustomContextMenuProps {
   children: React.ReactNode;
   onSelect: (action: string) => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-const CustomContextMenu: React.FC<CustomContextMenuProps> = ({ children, onSelect }) => {
+const CustomContextMenu: React.FC<CustomContextMenuProps> = ({
+  children,
+  onSelect,
+  open,
+  onClose,
+}) => {
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => onSelect('edit-element')}>
+    <DropdownMenu open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+        <DropdownMenuItem onClick={() => onSelect('edit-element')}>
           Edit Element
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => onSelect('generate-character')}>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onSelect('generate-character')}>
           Generate Character
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onSelect('delete-element')}>
+          Delete Element
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

@@ -7,15 +7,24 @@ import ReactFlow, {
     BackgroundVariant,
     type Node,
     type Viewport,
+    type Edge,
+    type Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useMapStore from '../store/mapStore';
 import RoomNode from './RoomNode';
 import CharacterNode from './CharacterNode';
+import ItemNode from './ItemNode';
+import CustomEdge from './CustomEdge';
 
 const nodeTypes = {
     room: RoomNode,
     character: CharacterNode,
+    item: ItemNode,
+};
+
+const edgeTypes = {
+    custom: CustomEdge,
 };
 
 interface FlowProps {
@@ -23,9 +32,20 @@ interface FlowProps {
     getViewport: () => Viewport;
     setViewport: (viewport: Viewport) => void;
     savedViewport: Viewport | null;
+    onEdgeUpdate: (oldEdge: Edge, newConnection: Connection) => void;
+    onEdgeUpdateStart: () => void;
+    onEdgeUpdateEnd: () => void;
 }
 
-const Flow: React.FC<FlowProps> = ({ onNodeContextMenu, getViewport: _getViewport, setViewport, savedViewport }) => {
+const Flow: React.FC<FlowProps> = ({
+    onNodeContextMenu,
+    getViewport: _getViewport,
+    setViewport,
+    savedViewport,
+    onEdgeUpdate,
+    onEdgeUpdateStart,
+    onEdgeUpdateEnd,
+}) => {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect } = useMapStore();
     const { fitView } = useReactFlow();
 
@@ -35,7 +55,7 @@ const Flow: React.FC<FlowProps> = ({ onNodeContextMenu, getViewport: _getViewpor
         } else if (nodes.length > 0) {
             setTimeout(() => fitView({ duration: 800, padding: 0.1 }), 50);
         }
-    }, [nodes, fitView, savedViewport, setViewport]);
+    }, [nodes.length, fitView, savedViewport, setViewport]);
 
     return (
         <ReactFlow
@@ -44,7 +64,11 @@ const Flow: React.FC<FlowProps> = ({ onNodeContextMenu, getViewport: _getViewpor
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onEdgeUpdate={onEdgeUpdate}
+            onEdgeUpdateStart={onEdgeUpdateStart}
+            onEdgeUpdateEnd={onEdgeUpdateEnd}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodeContextMenu={onNodeContextMenu}
         >
             <Controls />
