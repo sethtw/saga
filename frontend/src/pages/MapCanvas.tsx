@@ -1,25 +1,69 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import ReactFlow, {
-  Controls,
-  Background,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+import React, { useState, useCallback, useEffect } from 'react';
 import useMapStore from '../store/mapStore';
-import RoomNode from '../components/RoomNode';
 import ContextMenu from '../components/ContextMenu';
-import { type Node } from 'reactflow';
+import { type Node, useReactFlow, type Viewport } from 'reactflow';
 import GeneratorModal from '../components/GeneratorModal';
-import CharacterNode from '../components/CharacterNode';
+import EditElementModal from '../components/EditElementModal';
 import api from '../api/api';
-
+import { useParams, useNavigate } from 'react-router-dom';
+import Flow from '../components/Flow';
 
 const MapCanvas: React.FC = () => {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useMapStore();
-  const nodeTypes = useMemo(() => ({ room: RoomNode, character: CharacterNode }), []);
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const navigate = useNavigate();
+  const { nodes, edges, addNode, setNodes, setEdges, updateNodeData } = useMapStore();
   const [menu, setMenu] = useState<{ x: number, y: number, node: Node } | null>(null);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [savedViewport, setSavedViewport] = useState<Viewport | null>(null);
+  const { getViewport, setViewport } = useReactFlow();
+
+  // Load map data and viewport on initial render
+  useEffect(() => {
+    const loadData = async () => {
+      if (!campaignId) return;
+      setIsLoading(true);
+      try {
+        // Fetch campaign data to get the viewport
+        const campaignRes = await api.get(`/campaigns/${campaignId}`);
+        const { viewport_x, viewport_y, viewport_zoom } = campaignRes.data;
+        if (viewport_x && viewport_y && viewport_zoom) {
+          setSavedViewport({ x: viewport_x, y: viewport_y, zoom: viewport_zoom });
+        }
+
+        // Fetch map elements
+        const elementsRes = await api.get(`/campaigns/${campaignId}/elements`);
+        const { nodes: loadedNodesData, links: loadedLinksData } = elementsRes.data;
+
+        const loadedNodes = loadedNodesData.map((el: any) => ({
+          id: el.element_id.toString(),
+          type: el.type,
+          position: { x: el.position_x, y: el.position_y },
+          data: el.data,
+          parentNode: el.parent_element_id?.toString(),
+        }));
+        
+        const loadedEdges = loadedLinksData.map((link: any) => ({
+          id: link.link_id,
+          source: link.source_element_id,
+          target: link.target_element_id,
+        }));
+
+        setNodes(loadedNodes);
+        setEdges(loadedEdges);
+      } catch (error) {
+        console.error('Failed to load map data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [campaignId, setNodes, setEdges, setViewport]);
 
   const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
     event.preventDefault();
@@ -27,11 +71,34 @@ const MapCanvas: React.FC = () => {
   }, [setMenu]);
 
   const handleMenuAction = (action: string) => {
+    const node = menu?.node;
     setMenu(null);
     if (action === 'generate-character') {
       setIsGeneratorOpen(true);
+    } else if (action === 'edit-element' && node) {
+      setSelectedNode(node);
+      setIsEditModalOpen(true);
     } else {
-      console.log(`Selected action: ${action} on node:`, menu?.node);
+      console.log(`Selected action: ${action} on node:`, node);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!campaignId) return;
+    setIsSaving(true);
+    try {
+      // Save the nodes and edges
+      await api.post(`/campaigns/${campaignId}/elements`, { nodes, edges });
+
+      // Save the viewport
+      const viewport = getViewport();
+      await api.put(`/campaigns/${campaignId}/viewport`, viewport);
+
+      console.log('Map state and viewport saved successfully.');
+    } catch (error) {
+      console.error('Failed to save map state:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -47,7 +114,7 @@ const MapCanvas: React.FC = () => {
         prompt,
         contextId: menu.node.id,
       });
-      
+
       const newCharacter = response.data;
       const newNode: Node = {
         id: newCharacter.element_id.toString(),
@@ -78,26 +145,40 @@ const MapCanvas: React.FC = () => {
   };
 
   return (
-    <div style={{ height: '100vh', width: '100vw', backgroundColor: '#1a1a1a' }} onClick={() => setMenu(null)}>
-      <button 
-        onClick={handleAddNode} 
-        className="absolute top-4 left-4 z-10 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Add Node
-      </button>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        onNodeContextMenu={onNodeContextMenu}
-      >
-        <Controls />
-        <Background color="#4f4f4f" gap={15} />
-      </ReactFlow>
+    <div className="fullscreen-canvas" onClick={() => setMenu(null)}>
+      <div className="toolbar">
+        <button
+          onClick={handleAddNode}
+          className="btn-primary"
+        >
+          Add Node
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="btn-success"
+        >
+          {isSaving ? 'Saving...' : 'Save'}
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          className="btn-secondary"
+        >
+          Exit
+        </button>
+      </div>
+      {isLoading ? (
+        <div className="loading-overlay">
+          Loading Map...
+        </div>
+      ) : (
+        <Flow
+          onNodeContextMenu={onNodeContextMenu}
+          getViewport={getViewport}
+          setViewport={setViewport}
+          savedViewport={savedViewport}
+        />
+      )}
       {menu && <ContextMenu x={menu.x} y={menu.y} onClose={() => setMenu(null)} onSelect={handleMenuAction} />}
       <GeneratorModal
         isOpen={isGeneratorOpen}
@@ -108,13 +189,19 @@ const MapCanvas: React.FC = () => {
         onSubmit={handleGenerateSubmit}
         title="Generate a New Character"
       />
+      <EditElementModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={updateNodeData}
+        node={selectedNode}
+      />
       {isGenerating && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 bg-opacity-80 p-4 rounded-lg text-white">
+        <div className="status-overlay">
           Generating...
         </div>
       )}
       {generationError && (
-        <div className="absolute bottom-4 right-4 bg-red-800 p-4 rounded-lg text-white">
+        <div className="error-notification">
           {generationError}
         </div>
       )}

@@ -12,7 +12,7 @@ import { type NodeProps } from 'reactflow';
 const withMapElement = <P extends object>(WrappedComponent: React.ComponentType<P>) => {
   const WithMapElement: React.FC<P & NodeProps> = (props) => {
     return (
-      <div className="bg-gray-700 border-2 border-purple-500 rounded-md shadow-lg text-white">
+      <div className="map-element-wrapper">
         <WrappedComponent {...props} />
       </div>
     );

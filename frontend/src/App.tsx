@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ReactFlowProvider } from 'reactflow';
 import ProjectDashboard from './pages/ProjectDashboard';
 import SettingsView from './pages/SettingsView';
 import MapCanvas from './pages/MapCanvas';
@@ -10,7 +11,11 @@ function App() {
       <Routes>
         <Route path="/" element={<ProjectDashboard />} />
         <Route path="/settings" element={<SettingsView />} />
-        <Route path="/campaign/:campaignId" element={<MapCanvas />} />
+        <Route path="/campaign/:campaignId" element={
+          <ReactFlowProvider>
+            <MapCanvas />
+          </ReactFlowProvider>
+        } />
       </Routes>
     </Router>
   );

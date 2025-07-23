@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import campaignRouter from './routes/campaigns';
 import generateRouter from './routes/generate';
+import elementsRouter from './routes/elements';
 
 
 dotenv.config();
@@ -24,9 +25,10 @@ app.get("/api/health", (req: Request, res: Response) => {
   res.send("Saga Weaver API is running!");
 });
 
-// Use the campaign and generate routers
+// Use the routers
 app.use('/api', campaignRouter);
 app.use('/api', generateRouter);
+app.use('/api', elementsRouter);
 
 
 app.listen(port, () => {

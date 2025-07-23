@@ -16,27 +16,21 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onSelect }) =>
   return (
     <div
       style={{ top: y, left: x }}
-      className="absolute z-50 bg-gray-800 border border-purple-500 rounded-md shadow-lg"
+      className="context-menu"
       onClick={onClose}
     >
-      <ul className="py-1">
+      <ul className="context-menu-list">
+        <li
+          onClick={() => onSelect('edit-element')}
+          className="context-menu-item"
+        >
+          Edit Element
+        </li>
         <li
           onClick={() => onSelect('generate-character')}
-          className="px-4 py-2 hover:bg-purple-700 cursor-pointer text-white"
+          className="context-menu-item"
         >
           Generate Character
-        </li>
-        <li
-          onClick={() => onSelect('edit-description')}
-          className="px-4 py-2 hover:bg-purple-700 cursor-pointer text-white"
-        >
-          Edit Description
-        </li>
-        <li
-          onClick={() => onSelect('add-item')}
-          className="px-4 py-2 hover:bg-purple-700 cursor-pointer text-white"
-        >
-          Add Item
         </li>
       </ul>
     </div>

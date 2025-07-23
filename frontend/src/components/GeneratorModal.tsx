@@ -25,12 +25,12 @@ const GeneratorModal: React.FC<GeneratorModalProps> = ({ isOpen, onClose, onSubm
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-purple-400">{title}</h2>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2 className="modal-header">{title}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label htmlFor="prompt" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="mb-form-lg">
+            <label htmlFor="prompt" className="form-label-mb">
               Your Prompt
             </label>
             <textarea
@@ -38,21 +38,21 @@ const GeneratorModal: React.FC<GeneratorModalProps> = ({ isOpen, onClose, onSubm
               rows={4}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="form-input"
               placeholder="e.g., A grumpy dwarf blacksmith with a secret."
             />
           </div>
-          <div className="flex justify-end space-x-4">
+          <div className="flex-end-space">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+              className="btn-primary"
             >
               Generate
             </button>

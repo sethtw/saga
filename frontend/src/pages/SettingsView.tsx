@@ -35,20 +35,20 @@ const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="page-container">
+      <div className="page-content">
         <header className="mb-10">
-          <h1 className="text-4xl font-bold text-purple-400">Campaign Settings</h1>
-          <p className="text-gray-400 mt-2">Manage your campaign's high-level details and AI prompt templates.</p>
+          <h1 className="page-title">Campaign Settings</h1>
+          <p className="text-muted mt-2">Manage your campaign's high-level details and AI prompt templates.</p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Campaign Details Section */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4 text-purple-300">General Information</h2>
+          <div className="card">
+            <h2 className="section-subtitle">General Information</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="campaignName" className="block text-sm font-medium text-gray-300 mb-1">
+                <label htmlFor="campaignName" className="form-label-mb">
                   Campaign Name
                 </label>
                 <input
@@ -57,11 +57,11 @@ const SettingsView: React.FC = () => {
                   name="campaignName"
                   value={formState.campaignName}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="form-input"
                 />
               </div>
               <div>
-                <label htmlFor="narrativeContext" className="block text-sm font-medium text-gray-300 mb-1">
+                <label htmlFor="narrativeContext" className="form-label-mb">
                   World Description / Narrative Context
                 </label>
                 <textarea
@@ -70,18 +70,18 @@ const SettingsView: React.FC = () => {
                   rows={5}
                   value={formState.narrativeContext}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="form-input"
                 />
               </div>
             </div>
           </div>
 
           {/* Prompt Templates Section */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4 text-purple-300">LLM Prompt Templates</h2>
+          <div className="card">
+            <h2 className="section-subtitle">LLM Prompt Templates</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="characterPrompt" className="block text-sm font-medium text-gray-300 mb-1">
+                <label htmlFor="characterPrompt" className="form-label-mb">
                   Character Generator Prompt
                 </label>
                 <textarea
@@ -90,7 +90,7 @@ const SettingsView: React.FC = () => {
                   rows={8}
                   value={formState.characterPrompt}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="form-input font-mono text-sm"
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ const SettingsView: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded transition duration-300"
+              className="btn-primary py-2 px-6"
             >
               Save Settings
             </button>

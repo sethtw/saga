@@ -24,14 +24,14 @@ type RFState = {
   onEdgesChange: OnEdgesChange;
   onConnect: (params: Connection) => void;
   addNode: (node: Node) => void;
+  setNodes: (nodes: Node[]) => void;
+  setEdges: (edges: Edge[]) => void;
+  updateNodeData: (nodeId: string, data: any) => void;
 };
 
 const stateCreator: StateCreator<RFState> = (set, get) => ({
-  nodes: [
-    { id: '1', type: 'room', position: { x: 100, y: 100 }, data: { label: 'The Rusty Flagon Inn' } },
-    { id: '2', type: 'room', position: { x: 300, y: 200 }, data: { label: 'Town Square' } },
-  ],
-  edges: [{ id: 'e1-2', source: '1', target: '2' }],
+  nodes: [], // Start with empty arrays, data will be loaded from the backend.
+  edges: [],
   onNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
@@ -51,7 +51,25 @@ const stateCreator: StateCreator<RFState> = (set, get) => ({
     set({
       nodes: [...get().nodes, node],
     });
-  }
+  },
+  setNodes: (nodes) => {
+    set({ nodes });
+  },
+  setEdges: (edges) => {
+    set({ edges });
+  },
+  updateNodeData: (nodeId, data) => {
+    set({
+      nodes: get().nodes.map((node) => {
+        if (node.id === nodeId) {
+          // It's important to create a new object for the node data
+          // to ensure that React Flow detects the change.
+          return { ...node, data: { ...node.data, ...data } };
+        }
+        return node;
+      }),
+    });
+  },
 });
 
 const useMapStore = create<RFState>(stateCreator);

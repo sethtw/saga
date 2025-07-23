@@ -45,13 +45,13 @@ const NewCampaignModal: React.FC<NewCampaignModalProps> = ({ isOpen, onClose, on
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-purple-400">Create New Campaign</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2 className="modal-header">Create New Campaign</h2>
+        {error && <p className="text-error mb-form">{error}</p>}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="mb-form">
+            <label htmlFor="name" className="form-label-mb">
               Campaign Name
             </label>
             <input
@@ -59,12 +59,12 @@ const NewCampaignModal: React.FC<NewCampaignModalProps> = ({ isOpen, onClose, on
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="form-input"
               required
             />
           </div>
-          <div className="mb-6">
-            <label htmlFor="narrativeContext" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="mb-form-lg">
+            <label htmlFor="narrativeContext" className="form-label-mb">
               Narrative Context (Optional)
             </label>
             <textarea
@@ -72,20 +72,20 @@ const NewCampaignModal: React.FC<NewCampaignModalProps> = ({ isOpen, onClose, on
               rows={4}
               value={narrativeContext}
               onChange={(e) => setNarrativeContext(e.target.value)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="form-input"
             />
           </div>
-          <div className="flex justify-end space-x-4">
+          <div className="flex-end-space">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+              className="btn-primary"
             >
               Create
             </button>
