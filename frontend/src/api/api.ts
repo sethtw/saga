@@ -6,6 +6,11 @@ import { type Campaign } from '../types/campaign';
  * @description This file contains functions for interacting with the backend API.
  */
 
+export interface MapElements {
+    nodes: Node[];
+    edges: Edge[];
+}
+
 export const api = {
     getCampaigns: async (): Promise<Campaign[]> => {
         const response = await fetch('/api/campaigns');
@@ -41,21 +46,21 @@ export const api = {
         });
     },
 
-    getCampaignMap: async (id: number) => {
-        const response = await fetch(`/api/campaigns/${id}/map`);
+    getCampaignElements: async (id: number): Promise<MapElements> => {
+        const response = await fetch(`/api/campaigns/${id}/elements`);
         return response.json();
     },
 
-    saveMap: async (id: number, nodes: Node[], edges: Edge[]) => {
-        const response = await fetch(`/api/campaigns/${id}/map`, {
-            method: 'PUT',
+    saveElements: async (id: number, nodes: Node[], edges: Edge[]) => {
+        const response = await fetch(`/api/campaigns/${id}/elements`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nodes, edges }),
         });
         return response.json();
     },
 
-    createElement: async (element: { campaign_id: number; type: string; data: any; position: { x: number; y: number } }) => {
+    createElement: async (element: { campaign_id: number, type: string, data: any, position: { x: number, y: number }}) => {
         const response = await fetch('/api/elements', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -64,7 +69,7 @@ export const api = {
         return response.json();
     },
 
-    updateElement: async (id: number, data: any) => {
+    updateElement: async (id: string, data: Partial<Node>) => {
         const response = await fetch(`/api/elements/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -73,7 +78,7 @@ export const api = {
         return response.json();
     },
 
-    deleteElement: async (id: number) => {
+    deleteElement: async (id: string) => {
         const response = await fetch(`/api/elements/${id}`, {
             method: 'DELETE',
         });

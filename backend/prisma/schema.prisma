@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Campaign {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  viewportX       Float?        @map("viewport_x")
+  viewportY       Float?        @map("viewport_y")
+  viewportZoom    Float?        @map("viewport_zoom")
+  mapElements     MapElement[]
+  mapLinks        MapLink[]
+
+  @@map("campaigns")
+}
+
+model MapElement {
+  id              String        @id @map("element_id")
+  campaignId      Int           @map("campaign_id")
+  type            String?
+  positionX       Float         @map("position_x")
+  positionY       Float         @map("position_y")
+  data            Json?
+  parentElementId String?       @map("parent_element_id")
+  width           Int?
+  height          Int?
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at")
+  
+  campaign        Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@map("MapElements")
+}
+
+model MapLink {
+  id              String        @id @map("link_id")
+  campaignId      Int           @map("campaign_id")
+  sourceElementId String        @map("source_element_id")
+  targetElementId String        @map("target_element_id")
+
+  campaign        Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("MapLinks")
+}

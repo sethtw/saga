@@ -1,90 +1,39 @@
 import { Router, Request, Response } from 'express';
-import pool from '../database';
-
-// Define the types required by the backend, avoiding a frontend dependency.
-interface Node {
-  id: string;
-  type?: string;
-  position: { x: number; y: number };
-  data: any;
-  parentNode?: string;
-  width?: number;
-  height?: number;
-}
-
-interface Edge {
-  id: string;
-  source: string;
-  target: string;
-}
+import prisma from '../database';
+import { Prisma } from '@prisma/client';
+import { nanoid } from 'nanoid';
 
 const router = Router();
 
-// GET /api/campaigns/:campaignId/elements - Get all map elements and links for a campaign
-router.get('/campaigns/:campaignId/elements', async (req: Request, res: Response) => {
-  const { campaignId } = req.params;
-  try {
-    const nodesRes = await pool.query('SELECT * FROM MapElements WHERE campaign_id = $1', [campaignId]);
-    const linksRes = await pool.query('SELECT * FROM MapLinks WHERE campaign_id = $1', [campaignId]);
-    res.json({
-      nodes: nodesRes.rows,
-      links: linksRes.rows
-    });
-  } catch (err) {
-    console.error('Failed to get map elements:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// POST /api/elements - Create a new map element
+router.post('/', async (req: Request, res: Response) => {
+    const { campaign_id, type, data, position, parent_element_id } = req.body;
 
-// POST /api/campaigns/:campaignId/elements - Synchronize all map elements for a campaign
-router.post('/campaigns/:campaignId/elements', async (req: Request, res: Response) => {
-  const { campaignId } = req.params;
-  const { nodes, edges } = req.body as { nodes: Node[], edges: Edge[] };
-
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    // For simplicity, we'll delete all existing elements and links for this campaign and re-insert them.
-    // A more advanced implementation would perform a diff to update, insert, or delete.
-    await client.query('DELETE FROM MapLinks WHERE campaign_id = $1', [campaignId]);
-    await client.query('DELETE FROM MapElements WHERE campaign_id = $1', [campaignId]);
-
-    // Insert all nodes
-    for (const node of nodes) {
-      const { id, type, position, data, parentNode, width, height } = node;
-      await client.query(
-        `INSERT INTO MapElements (element_id, campaign_id, type, position_x, position_y, data, parent_element_id, width, height)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [id, campaignId, type, position.x, position.y, data, parentNode, width, height]
-      );
-    }
-    
-    // Insert all edges (links)
-    for (const edge of edges) {
-      const { id, source, target } = edge;
-      await client.query(
-        `INSERT INTO MapLinks (link_id, campaign_id, source_element_id, target_element_id)
-         VALUES ($1, $2, $3, $4)`,
-        [id, campaignId, source, target]
-      );
+    if (!campaign_id || !type || !position) {
+        return res.status(400).json({ error: 'Missing required fields for creating an element.' });
     }
 
-    await client.query('COMMIT');
-    res.status(200).json({ message: 'Map state synchronized successfully.' });
-
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('Failed to synchronize map state:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  } finally {
-    client.release();
-  }
+    try {
+        const newElement = await prisma.mapElement.create({
+            data: {
+                id: nanoid(),
+                campaignId: campaign_id,
+                type: type,
+                positionX: position.x,
+                positionY: position.y,
+                data: data ? (data as Prisma.InputJsonValue) : Prisma.JsonNull,
+                parentElementId: parent_element_id,
+            },
+        });
+        res.status(201).json(newElement);
+    } catch (err) {
+        console.error('Failed to create element:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // PUT /api/elements/:elementId - Update a specific map element
-router.put('/elements/:elementId', async (req: Request, res: Response) => {
+router.put('/:elementId', async (req: Request, res: Response) => {
   const { elementId } = req.params;
   const { data, width, height } = req.body;
 
@@ -93,54 +42,53 @@ router.put('/elements/:elementId', async (req: Request, res: Response) => {
   }
 
   try {
-    const { rows } = await pool.query(
-      'UPDATE MapElements SET data = $1, width = $2, height = $3, updated_at = NOW() WHERE element_id = $4 RETURNING *',
-      [data, width, height, elementId]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Element not found.' });
-    }
-
-    res.json(rows[0]);
+    const updatedElement = await prisma.mapElement.update({
+      where: { id: elementId },
+      data: {
+        data: data ? (data as Prisma.InputJsonValue) : Prisma.JsonNull,
+        width,
+        height,
+      },
+    });
+    res.json(updatedElement);
   } catch (err) {
     console.error(`Failed to update element ${elementId}:`, err);
+    // Handle case where element is not found
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      return res.status(404).json({ error: 'Element not found.' });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // DELETE /api/elements/:elementId - Delete a specific map element
-router.delete('/elements/:elementId', async (req: Request, res: Response) => {
+router.delete('/:elementId', async (req: Request, res: Response) => {
   const { elementId } = req.params;
-  const client = await pool.connect();
 
   try {
-    await client.query('BEGIN');
+    await prisma.$transaction(async (tx) => {
+      // Delete links connected to the element first
+      await tx.mapLink.deleteMany({
+        where: {
+          OR: [
+            { sourceElementId: elementId },
+            { targetElementId: elementId },
+          ],
+        },
+      });
 
-    // First, delete any links connected to this element to maintain foreign key constraints
-    await client.query('DELETE FROM MapLinks WHERE source_element_id = $1 OR target_element_id = $1', [elementId]);
+      // Then delete the element itself
+      await tx.mapElement.delete({ where: { id: elementId } });
+    });
 
-    // Then, delete the element itself
-    const deleteRes = await client.query('DELETE FROM MapElements WHERE element_id = $1', [elementId]);
-
-    if (deleteRes.rowCount === 0) {
-      // If no rows were deleted, the element was not found. We might still want to commit
-      // the transaction if links were deleted, so we don't roll back here.
-      await client.query('COMMIT');
+    res.status(204).send();
+  } catch (err) {
+    console.error(`Failed to delete element ${elementId}:`, err);
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
       return res.status(404).json({ error: 'Element not found.' });
     }
-
-    await client.query('COMMIT');
-    res.status(204).send(); // 204 No Content is a good choice for a successful deletion
-  
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error(`Failed to delete element ${elementId}:`, err);
     res.status(500).json({ error: 'Internal server error' });
-  } finally {
-    client.release();
   }
 });
-
 
 export default router; 

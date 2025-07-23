@@ -1,13 +1,15 @@
 import { Router, Request, Response } from 'express';
-import pool from '../database';
+import prisma from '../database';
+import { Prisma } from '@prisma/client';
+import { Node, Edge } from '../types/map';
 
 const router = Router();
 
 // GET /api/campaigns - Get all campaigns
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM campaigns');
-        res.json(rows);
+        const campaigns = await prisma.campaign.findMany();
+        res.json(campaigns);
     } catch (err) {
         console.error('Failed to fetch campaigns:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -18,11 +20,13 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const { rows } = await pool.query('SELECT * FROM campaigns WHERE id = $1', [id]);
-        if (rows.length === 0) {
+        const campaign = await prisma.campaign.findUnique({
+            where: { id: parseInt(id, 10) },
+        });
+        if (!campaign) {
             return res.status(404).json({ error: 'Campaign not found' });
         }
-        res.json(rows[0]);
+        res.json(campaign);
     } catch (err) {
         console.error(`Failed to fetch campaign with id ${id}:`, err);
         res.status(500).json({ error: 'Internal server error' });
@@ -36,11 +40,10 @@ router.post('/', async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'Campaign name is required' });
     }
     try {
-        const { rows } = await pool.query(
-            'INSERT INTO campaigns (name, description) VALUES ($1, $2) RETURNING *',
-            [name, description]
-        );
-        res.status(201).json(rows[0]);
+        const newCampaign = await prisma.campaign.create({
+            data: { name, description },
+        });
+        res.status(201).json(newCampaign);
     } catch (err) {
         console.error('Failed to create campaign:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -53,72 +56,108 @@ router.put('/:id', async (req: Request, res: Response) => {
     const { name, description, viewport_x, viewport_y, viewport_zoom } = req.body;
 
     try {
-        const { rows } = await pool.query(
-            'UPDATE campaigns SET name = $1, description = $2, viewport_x = $3, viewport_y = $4, viewport_zoom = $5 WHERE id = $6 RETURNING *',
-            [name, description, viewport_x, viewport_y, viewport_zoom, id]
-        );
-        if (rows.length === 0) {
-            return res.status(404).json({ error: 'Campaign not found' });
-        }
-        res.json(rows[0]);
+        const updatedCampaign = await prisma.campaign.update({
+            where: { id: parseInt(id, 10) },
+            data: {
+                name,
+                description,
+                viewportX: viewport_x,
+                viewportY: viewport_y,
+                viewportZoom: viewport_zoom,
+            },
+        });
+        res.json(updatedCampaign);
     } catch (err) {
         console.error(`Failed to update campaign with id ${id}:`, err);
-        res.status(500).json({ error: 'Internal server error' });
+        // Prisma's update throws an error if the record is not found.
+        res.status(500).json({ error: 'Failed to update campaign. It may not exist.' });
     }
 });
 
-// GET /api/campaigns/:id/map - Get map data for a campaign
-router.get('/:id/map', async (req: Request, res: Response) => {
-    const { id } = req.params;
+// GET /api/campaigns/:campaignId/elements - Get all map elements and links for a campaign
+router.get('/:campaignId/elements', async (req: Request, res: Response) => {
+    const { campaignId } = req.params;
+    const campaignIdInt = parseInt(campaignId, 10);
+
     try {
-        const nodesResult = await pool.query('SELECT * FROM elements WHERE campaign_id = $1', [id]);
-        const edgesResult = await pool.query('SELECT * FROM edges WHERE campaign_id = $1', [id]);
-        res.json({ nodes: nodesResult.rows, edges: edgesResult.rows });
+        const dbNodes = await prisma.mapElement.findMany({
+            where: { campaignId: campaignIdInt },
+        });
+        const dbLinks = await prisma.mapLink.findMany({
+            where: { campaignId: campaignIdInt },
+        });
+
+        // Transform nodes to match React Flow's expected structure
+        const nodes: Node[] = dbNodes.map(n => ({
+            id: n.id,
+            type: n.type ?? undefined,
+            position: { x: n.positionX, y: n.positionY },
+            data: n.data ? n.data : null, // Prisma handles JSON parsing
+            width: n.width ?? undefined,
+            height: n.height ?? undefined,
+            parentNode: n.parentElementId ?? undefined,
+        }));
+
+        // Transform links to edges
+        const edges: Edge[] = dbLinks.map(l => ({
+            id: l.id,
+            source: l.sourceElementId,
+            target: l.targetElementId,
+        }));
+
+        res.json({ nodes, edges });
     } catch (err) {
-        console.error(`Failed to fetch map data for campaign with id ${id}:`, err);
+        console.error('Failed to get map elements:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// PUT /api/campaigns/:id/map - Save map data for a campaign
-router.put('/:id/map', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { nodes, edges } = req.body;
+// POST /api/campaigns/:campaignId/elements - Synchronize all map elements for a campaign
+router.post('/:campaignId/elements', async (req: Request, res: Response) => {
+    const { campaignId } = req.params;
+    const { nodes, edges } = req.body as { nodes: Node[], edges: Edge[] };
+    const campaignIdInt = parseInt(campaignId, 10);
 
-    const client = await pool.connect();
     try {
-        await client.query('BEGIN');
+        await prisma.$transaction(async (tx) => {
+            // Clear existing elements and links for the campaign
+            await tx.mapLink.deleteMany({ where: { campaignId: campaignIdInt } });
+            await tx.mapElement.deleteMany({ where: { campaignId: campaignIdInt } });
 
-        await client.query('DELETE FROM edges WHERE campaign_id = $1', [id]);
-        await client.query('DELETE FROM elements WHERE campaign_id = $1', [id]);
-
-        if (nodes && nodes.length > 0) {
-            for (const node of nodes) {
-                await client.query(
-                    'INSERT INTO elements (id, campaign_id, type, data, position) VALUES ($1, $2, $3, $4, $5)',
-                    [node.id, id, node.type, JSON.stringify(node.data), JSON.stringify(node.position)]
-                );
+            // Insert all nodes
+            if (nodes && nodes.length > 0) {
+                const nodeData = nodes.map(node => ({
+                    id: node.id,
+                    campaignId: campaignIdInt,
+                    type: node.type,
+                    positionX: node.position.x,
+                    positionY: node.position.y,
+                    data: node.data ? (node.data as Prisma.InputJsonValue) : Prisma.JsonNull,
+                    parentElementId: node.parentNode,
+                    width: node.width,
+                    height: node.height,
+                }));
+                await tx.mapElement.createMany({ data: nodeData });
             }
-        }
 
-        if (edges && edges.length > 0) {
-            for (const edge of edges) {
-                await client.query(
-                    'INSERT INTO edges (id, campaign_id, source, target, sourceHandle, targetHandle) VALUES ($1, $2, $3, $4, $5, $6)',
-                    [edge.id, id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle]
-                );
+            // Insert all edges (links)
+            if (edges && edges.length > 0) {
+                const edgeData = edges.map(edge => ({
+                    id: edge.id,
+                    campaignId: campaignIdInt,
+                    sourceElementId: edge.source,
+                    targetElementId: edge.target,
+                }));
+                await tx.mapLink.createMany({ data: edgeData });
             }
-        }
+        });
 
-        await client.query('COMMIT');
-        res.json({ message: 'Map saved successfully' });
+        res.status(200).json({ message: 'Map state synchronized successfully.' });
     } catch (err) {
-        await client.query('ROLLBACK');
-        console.error(`Failed to save map data for campaign with id ${id}:`, err);
+        console.error('Failed to synchronize map state:', err);
         res.status(500).json({ error: 'Internal server error' });
-    } finally {
-        client.release();
     }
 });
+
 
 export default router; 

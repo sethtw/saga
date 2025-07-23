@@ -91,7 +91,7 @@ const MapCanvas: React.FC = () => {
     useAutoSave({
         onSave: async (nodes, edges) => {
             if (campaignId) {
-                await api.saveMap(parseInt(campaignId), nodes, edges);
+                await api.saveElements(parseInt(campaignId), nodes, edges);
                 toast.success('Map saved!');
             }
         },
@@ -103,7 +103,7 @@ const MapCanvas: React.FC = () => {
             if (!campaignId) return;
             setIsLoading(true);
             try {
-                const { nodes, edges } = await api.getCampaignMap(parseInt(campaignId));
+                const { nodes, edges } = await api.getCampaignElements(parseInt(campaignId));
                 setNodes(nodes);
                 setEdges(edges);
             } catch (error) {
@@ -127,7 +127,7 @@ const MapCanvas: React.FC = () => {
             setIsEditModalOpen(true);
         } else if (action === 'delete-element') {
             try {
-                await api.deleteElement(parseInt(node.id));
+                await api.deleteElement(node.id.toString());
                 deleteNode(node.id);
                 toast.success(`Element "${node.data.name || node.id}" deleted successfully.`);
             } catch (error) {
@@ -149,7 +149,7 @@ const MapCanvas: React.FC = () => {
             const promise = () => new Promise<void>(async (resolve, reject) => {
                 try {
                     for (const node of selectedNodes) {
-                        await api.deleteElement(parseInt(node.id));
+                        await api.deleteElement(node.id.toString());
                         deleteNode(node.id);
                     }
                     resolve();
@@ -185,7 +185,7 @@ const MapCanvas: React.FC = () => {
                     height,
                 }));
 
-                await api.saveMap(parseInt(campaignId), nodesToSave, edges)
+                await api.saveElements(parseInt(campaignId), nodesToSave, edges)
 
                 // Save the viewport
                 const viewport = getViewport();
@@ -223,10 +223,10 @@ const MapCanvas: React.FC = () => {
 
             const newCharacter = response;
             const newNode: Node = {
-                id: newCharacter.element_id.toString(),
+                id: newCharacter.id.toString(),
                 type: 'character',
                 position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
-                data: { name: newCharacter.data.name, description: newCharacter.data.description },
+                data: newCharacter.data as { name: string; description: string },
                 parentNode: menu.node.id,
                 extent: 'parent',
             };
@@ -257,7 +257,7 @@ const MapCanvas: React.FC = () => {
                 position,
             });
             const newNode: Node = {
-                id: newElement.element_id.toString(),
+                id: newElement.id.toString(),
                 type,
                 position,
                 data,
