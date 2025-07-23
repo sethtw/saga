@@ -22,7 +22,7 @@ import {
 import { useAutoSave } from '../hooks/useAutoSave';
 
 // We need a separate component to render the flow so that we can wrap it in a ReactFlowProvider
-const FlowRenderer = () => {
+const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
     const {
         onEdgeUpdate,
         onEdgeUpdateStart,
@@ -43,6 +43,42 @@ const FlowRenderer = () => {
             node,
         });
     }, [setMenu]);
+
+    // Expose the save function to the window for manual save
+    useEffect(() => {
+        (window as any).saveMapWithViewport = async () => {
+            try {
+                const { getNodes } = (window as any).reactFlowStore.getState();
+                const { edges } = useMapStore.getState();
+                
+                // Save the nodes and edges
+                const nodesToSave = getNodes().map(({ id, type, position, data, parentId, width, height }: Node) => ({
+                    id,
+                    type,
+                    position,
+                    data,
+                    parentId,
+                    width,
+                    height,
+                }));
+
+                await api.saveElements(parseInt(campaignId), nodesToSave, edges);
+
+                // Save the viewport using the proper getViewport function
+                const viewport = getViewport();
+                await api.updateCampaign(parseInt(campaignId), { 
+                    viewport_x: viewport.x, 
+                    viewport_y: viewport.y, 
+                    viewport_zoom: viewport.zoom 
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to save map state:', error);
+                throw error;
+            }
+        };
+    }, [campaignId, getViewport]);
 
     return (
         <div className="h-full w-full" onClick={() => setMenu(null)}>
@@ -172,24 +208,8 @@ const MapCanvas: React.FC = () => {
         setIsSaving(true);
         const promise = () => new Promise<void>(async (resolve, reject) => {
             try {
-                const { getNodes, getViewport } = (window as any).reactFlowStore.getState();
-                const { edges } = useMapStore.getState();
-                // Save the nodes and edges
-                const nodesToSave = getNodes().map(({ id, type, position, data, parentNode, width, height }: Node) => ({
-                    id,
-                    type,
-                    position,
-                    data,
-                    parentNode,
-                    width,
-                    height,
-                }));
-
-                await api.saveElements(parseInt(campaignId), nodesToSave, edges)
-
-                // Save the viewport
-                const viewport = getViewport();
-                await api.updateCampaign(parseInt(campaignId), { viewport_x: viewport.x, viewport_y: viewport.y, viewport_zoom: viewport.zoom });
+                // Use the window-exposed save function that has proper access to getViewport
+                await (window as any).saveMapWithViewport();
                 resolve();
             } catch (error) {
                 console.error('Failed to save map state:', error);
@@ -227,7 +247,7 @@ const MapCanvas: React.FC = () => {
                 type: 'character',
                 position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
                 data: newCharacter.data as { name: string; description: string },
-                parentNode: menu.node.id,
+                parentId: menu.node.id,
                 extent: 'parent',
             };
             addNode(newNode);
@@ -247,7 +267,10 @@ const MapCanvas: React.FC = () => {
             x: Math.random() * 400 - 200,
             y: Math.random() * 400 - 200,
         };
-        const data = { name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` };
+        // Use different field names based on node type
+        const data = type === 'room' 
+            ? { label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` }
+            : { name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` };
 
         try {
             const newElement = await api.createElement({
@@ -312,7 +335,7 @@ const MapCanvas: React.FC = () => {
                 </div>
             ) : (
                 <ReactFlowProvider>
-                    <FlowRenderer />
+                    <FlowRenderer campaignId={campaignId!} />
                 </ReactFlowProvider>
             )}
             <CustomContextMenu

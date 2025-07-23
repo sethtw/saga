@@ -3,7 +3,7 @@ import {
   addEdge,
   applyNodeChanges,
   applyEdgeChanges,
-  updateEdge,
+  reconnectEdge,
   type Connection,
   type Edge,
   type Node,
@@ -18,6 +18,22 @@ import { type StateCreator } from 'zustand';
  * @description Zustand store for managing the state of the map canvas,
  * including nodes and edges.
  */
+
+// Type definitions for node data
+interface RoomNodeData {
+  label: string;
+}
+
+interface ItemNodeData {
+  name: string;
+}
+
+interface CharacterNodeData {
+  name: string;
+  description: string;
+}
+
+type NodeData = RoomNodeData | ItemNodeData | CharacterNodeData;
 
 type MapState = {
   nodes: Node[];
@@ -36,7 +52,7 @@ type MapActions = {
   addNode: (node: Node) => void;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
-  updateNodeData: (nodeId: string, data: any) => void;
+  updateNodeData: (nodeId: string, data: Partial<NodeData>) => void;
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
   setMenu: (menu: { x: number, y: number, node: Node } | null) => void;
@@ -59,7 +75,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
     },
     onEdgeUpdate: (oldEdge, newConnection) => {
       set({
-        edges: updateEdge(oldEdge, newConnection, get().edges),
+        edges: reconnectEdge(oldEdge, newConnection, get().edges),
         isDirty: true,
       });
     },

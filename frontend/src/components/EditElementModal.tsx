@@ -17,7 +17,7 @@ import { Label } from './ui/label';
 interface EditElementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (nodeId: string, data: any) => void;
+  onSave: (nodeId: string, data: Record<string, any>) => void;
   node: Node | null;
 }
 
@@ -52,10 +52,12 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
     setError(null);
 
     try {
-      const response = await api.updateElement(parseInt(node.id), {
+      const response = await api.updateElement(node.id, {
         data: formData,
       });
-      onSave(node.id, response.data.data);
+      // Pass the formData directly instead of response.data.data
+      // This ensures we're updating with the actual form data that was submitted
+      onSave(node.id, formData);
       onClose();
     } catch (err) {
       setError('Failed to update element. Please try again.');
@@ -69,13 +71,13 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
         return (
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="label" className="text-right">
                 Name
               </Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name || ''}
+                id="label"
+                name="label"
+                value={formData.label || ''}
                 onChange={handleInputChange}
                 className="col-span-3"
               />

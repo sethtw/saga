@@ -10,7 +10,7 @@ export interface Node {
   type?: string;
   position: { x: number; y: number };
   data: any;
-  parentNode?: string;
+  parentId?: string;
   width?: number;
   height?: number;
 }

@@ -95,7 +95,7 @@ router.get('/:campaignId/elements', async (req: Request, res: Response) => {
             data: n.data ? n.data : null, // Prisma handles JSON parsing
             width: n.width ?? undefined,
             height: n.height ?? undefined,
-            parentNode: n.parentElementId ?? undefined,
+            parentId: n.parentElementId ?? undefined,
         }));
 
         // Transform links to edges
@@ -133,7 +133,7 @@ router.post('/:campaignId/elements', async (req: Request, res: Response) => {
                     positionX: node.position.x,
                     positionY: node.position.y,
                     data: node.data ? (node.data as Prisma.InputJsonValue) : Prisma.JsonNull,
-                    parentElementId: node.parentNode,
+                    parentElementId: node.parentId,
                     width: node.width,
                     height: node.height,
                 }));

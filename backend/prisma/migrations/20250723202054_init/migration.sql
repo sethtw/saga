@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "campaigns" (
+CREATE TABLE "Campaigns" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -8,7 +8,7 @@ CREATE TABLE "campaigns" (
     "viewport_y" DOUBLE PRECISION,
     "viewport_zoom" DOUBLE PRECISION,
 
-    CONSTRAINT "campaigns_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Campaigns_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -38,7 +38,7 @@ CREATE TABLE "MapLinks" (
 );
 
 -- AddForeignKey
-ALTER TABLE "MapElements" ADD CONSTRAINT "MapElements_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "MapElements" ADD CONSTRAINT "MapElements_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "Campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MapLinks" ADD CONSTRAINT "MapLinks_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "MapLinks" ADD CONSTRAINT "MapLinks_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "Campaigns"("id") ON DELETE CASCADE ON UPDATE CASCADE;

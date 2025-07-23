@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/api';
 import NewCampaignModal from '../components/NewCampaignModal';
@@ -18,9 +18,13 @@ const ProjectDashboard: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const fetchingRef = useRef(false);
 
   const fetchCampaigns = async () => {
+    if (fetchingRef.current) return; // Prevent duplicate requests
+    
     try {
+      fetchingRef.current = true;
       setLoading(true);
       const fetchedCampaigns = await api.getCampaigns();
       setCampaigns(fetchedCampaigns);
@@ -28,6 +32,7 @@ const ProjectDashboard: React.FC = () => {
       console.error('Failed to fetch campaigns:', error);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
   };
 
