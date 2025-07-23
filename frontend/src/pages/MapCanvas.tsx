@@ -78,6 +78,22 @@ const FlowRenderer = ({ campaignId }: { campaignId: string }) => {
                 throw error;
             }
         };
+
+        // Expose a function to save just the viewport
+        (window as any).saveViewport = async () => {
+            try {
+                const viewport = getViewport();
+                await api.updateCampaign(parseInt(campaignId), { 
+                    viewport_x: viewport.x, 
+                    viewport_y: viewport.y, 
+                    viewport_zoom: viewport.zoom 
+                });
+                return true;
+            } catch (error) {
+                console.error('Failed to save viewport:', error);
+                throw error;
+            }
+        };
     }, [campaignId, getViewport]);
 
     return (
@@ -107,6 +123,9 @@ const MapCanvas: React.FC = () => {
         addNode,
         deleteNode,
         updateNodeData,
+        loadOriginalState,
+        getChangedElements,
+        clearChanges,
     } = useMapStore();
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -124,11 +143,29 @@ const MapCanvas: React.FC = () => {
         (window as any).reactFlowStore = store;
     }, [store]);
 
+    // Enhanced auto-save with efficient synchronization
     useAutoSave({
         onSave: async (nodes, edges) => {
             if (campaignId) {
-                await api.saveElements(parseInt(campaignId), nodes, edges);
-                toast.success('Map saved!');
+                try {
+                    const changes = getChangedElements();
+                    
+                    // Only sync if there are actual changes
+                    if (changes.addedNodes.length > 0 || 
+                        changes.updatedNodes.length > 0 || 
+                        changes.deletedNodeIds.length > 0 ||
+                        changes.addedEdges.length > 0 || 
+                        changes.updatedEdges.length > 0 || 
+                        changes.deletedEdgeIds.length > 0) {
+                        
+                        await api.syncChanges(parseInt(campaignId), changes);
+                        clearChanges();
+                        toast.success('Map saved!');
+                    }
+                } catch (error) {
+                    console.error('Failed to sync changes:', error);
+                    toast.error('Failed to save map.');
+                }
             }
         },
     });
@@ -142,6 +179,8 @@ const MapCanvas: React.FC = () => {
                 const { nodes, edges } = await api.getCampaignElements(parseInt(campaignId));
                 setNodes(nodes);
                 setEdges(edges);
+                // Load the original state for change tracking
+                loadOriginalState(nodes, edges);
             } catch (error) {
                 console.error('Failed to load map data:', error);
             } finally {
@@ -149,7 +188,7 @@ const MapCanvas: React.FC = () => {
             }
         };
         loadData();
-    }, [campaignId, setNodes, setEdges]);
+    }, [campaignId, setNodes, setEdges, loadOriginalState]);
 
 
     const handleMenuAction = useCallback(async (action: string) => {
@@ -208,8 +247,23 @@ const MapCanvas: React.FC = () => {
         setIsSaving(true);
         const promise = () => new Promise<void>(async (resolve, reject) => {
             try {
-                // Use the window-exposed save function that has proper access to getViewport
-                await (window as any).saveMapWithViewport();
+                // Use the new efficient sync system
+                const changes = getChangedElements();
+                
+                if (changes.addedNodes.length > 0 || 
+                    changes.updatedNodes.length > 0 || 
+                    changes.deletedNodeIds.length > 0 ||
+                    changes.addedEdges.length > 0 || 
+                    changes.updatedEdges.length > 0 || 
+                    changes.deletedEdgeIds.length > 0) {
+                    
+                    await api.syncChanges(parseInt(campaignId), changes);
+                    clearChanges();
+                }
+
+                // Save the viewport using the window-exposed save function
+                await (window as any).saveViewport();
+                
                 resolve();
             } catch (error) {
                 console.error('Failed to save map state:', error);
@@ -224,7 +278,7 @@ const MapCanvas: React.FC = () => {
             success: 'Map state saved successfully!',
             error: 'Failed to save map state.',
         });
-    }, [campaignId]);
+    }, [campaignId, getChangedElements, clearChanges]);
 
     const handleGenerateSubmit = useCallback(async (prompt: string) => {
         if (!menu) return;

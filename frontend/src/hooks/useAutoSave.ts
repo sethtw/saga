@@ -8,7 +8,7 @@ interface AutoSaveOptions {
 }
 
 export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
-    const { nodes, edges, isDirty, setDirty } = useMapStore();
+    const { nodes, edges, isDirty, setDirty, getChangedElements, clearChanges } = useMapStore();
     const { autoSaveEnabled, autoSaveInterval } = useSettingsStore();
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -19,7 +19,19 @@ export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
             }
 
             timeoutRef.current = setTimeout(() => {
-                onSave(nodes, edges);
+                // Check if there are actual changes before saving
+                const changes = getChangedElements();
+                const hasChanges = changes.addedNodes.length > 0 || 
+                    changes.updatedNodes.length > 0 || 
+                    changes.deletedNodeIds.length > 0 ||
+                    changes.addedEdges.length > 0 || 
+                    changes.updatedEdges.length > 0 || 
+                    changes.deletedEdgeIds.length > 0;
+                
+                if (hasChanges) {
+                    onSave(nodes, edges);
+                    clearChanges();
+                }
                 setDirty(false);
             }, autoSaveInterval);
         }
@@ -29,5 +41,5 @@ export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [nodes, edges, isDirty, autoSaveEnabled, autoSaveInterval, onSave, setDirty]);
+    }, [nodes, edges, isDirty, autoSaveEnabled, autoSaveInterval, onSave, setDirty, getChangedElements, clearChanges]);
 }; 

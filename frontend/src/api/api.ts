@@ -11,6 +11,15 @@ export interface MapElements {
     edges: Edge[];
 }
 
+export interface SyncChanges {
+    addedNodes: Node[];
+    updatedNodes: Node[];
+    deletedNodeIds: string[];
+    addedEdges: Edge[];
+    updatedEdges: Edge[];
+    deletedEdgeIds: string[];
+}
+
 export const api = {
     getCampaigns: async (): Promise<Campaign[]> => {
         const response = await fetch('/api/campaigns');
@@ -56,6 +65,15 @@ export const api = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nodes, edges }),
+        });
+        return response.json();
+    },
+
+    syncChanges: async (id: number, changes: SyncChanges) => {
+        const response = await fetch(`/api/campaigns/${id}/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(changes),
         });
         return response.json();
     },

@@ -159,5 +159,161 @@ router.post('/:campaignId/elements', async (req: Request, res: Response) => {
     }
 });
 
+// POST /api/campaigns/:campaignId/sync - Efficient synchronization of changed elements only
+router.post('/:campaignId/sync', async (req: Request, res: Response) => {
+    const { campaignId } = req.params;
+    const { 
+        addedNodes, 
+        updatedNodes, 
+        deletedNodeIds, 
+        addedEdges, 
+        updatedEdges, 
+        deletedEdgeIds 
+    } = req.body;
+    const campaignIdInt = parseInt(campaignId, 10);
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Delete nodes that were removed
+            if (deletedNodeIds && deletedNodeIds.length > 0) {
+                // First delete any links connected to these nodes
+                await tx.mapLink.deleteMany({
+                    where: {
+                        OR: [
+                            { sourceElementId: { in: deletedNodeIds } },
+                            { targetElementId: { in: deletedNodeIds } },
+                        ],
+                    },
+                });
+                
+                // Then delete the nodes
+                await tx.mapElement.deleteMany({
+                    where: { id: { in: deletedNodeIds } },
+                });
+            }
+
+            // Delete edges that were removed
+            if (deletedEdgeIds && deletedEdgeIds.length > 0) {
+                await tx.mapLink.deleteMany({
+                    where: { id: { in: deletedEdgeIds } },
+                });
+            }
+
+            // Update existing nodes
+            if (updatedNodes && updatedNodes.length > 0) {
+                for (const node of updatedNodes) {
+                    const nodeData = node as Node;
+                    await tx.mapElement.update({
+                        where: { id: nodeData.id },
+                        data: {
+                            type: nodeData.type,
+                            positionX: nodeData.position.x,
+                            positionY: nodeData.position.y,
+                            data: nodeData.data ? (nodeData.data as Prisma.InputJsonValue) : Prisma.JsonNull,
+                            parentElementId: nodeData.parentId,
+                            width: nodeData.width,
+                            height: nodeData.height,
+                        },
+                    });
+                }
+            }
+
+            // Update existing edges
+            if (updatedEdges && updatedEdges.length > 0) {
+                for (const edge of updatedEdges) {
+                    const edgeData = edge as Edge;
+                    await tx.mapLink.update({
+                        where: { id: edgeData.id },
+                        data: {
+                            sourceElementId: edgeData.source,
+                            targetElementId: edgeData.target,
+                        },
+                    });
+                }
+            }
+
+            // Add new nodes
+            if (addedNodes && addedNodes.length > 0) {
+                // Check for existing nodes to avoid unique constraint violations
+                const existingNodeIds = await tx.mapElement.findMany({
+                    where: { 
+                        id: { in: addedNodes.map((node: Node) => node.id) },
+                        campaignId: campaignIdInt
+                    },
+                    select: { id: true }
+                });
+                
+                const existingIds = new Set(existingNodeIds.map(n => n.id));
+                const trulyNewNodes = addedNodes.filter((node: Node) => !existingIds.has(node.id));
+                
+                if (trulyNewNodes.length > 0) {
+                    const nodeData = trulyNewNodes.map((node: Node) => ({
+                        id: node.id,
+                        campaignId: campaignIdInt,
+                        type: node.type,
+                        positionX: node.position.x,
+                        positionY: node.position.y,
+                        data: node.data ? (node.data as Prisma.InputJsonValue) : Prisma.JsonNull,
+                        parentElementId: node.parentId,
+                        width: node.width,
+                        height: node.height,
+                    }));
+                    await tx.mapElement.createMany({ data: nodeData });
+                }
+            }
+
+            // Add new edges
+            if (addedEdges && addedEdges.length > 0) {
+                // Check for existing edges to avoid unique constraint violations
+                const existingEdgeIds = await tx.mapLink.findMany({
+                    where: { 
+                        id: { in: addedEdges.map((edge: Edge) => edge.id) },
+                        campaignId: campaignIdInt
+                    },
+                    select: { id: true }
+                });
+                
+                const existingIds = new Set(existingEdgeIds.map(e => e.id));
+                const trulyNewEdges = addedEdges.filter((edge: Edge) => !existingIds.has(edge.id));
+                
+                if (trulyNewEdges.length > 0) {
+                    const edgeData = trulyNewEdges.map((edge: Edge) => ({
+                        id: edge.id,
+                        campaignId: campaignIdInt,
+                        sourceElementId: edge.source,
+                        targetElementId: edge.target,
+                    }));
+                    await tx.mapLink.createMany({ data: edgeData });
+                }
+            }
+        });
+
+        res.status(200).json({ 
+            message: 'Map changes synchronized successfully.',
+            changes: {
+                addedNodes: addedNodes?.length || 0,
+                updatedNodes: updatedNodes?.length || 0,
+                deletedNodes: deletedNodeIds?.length || 0,
+                addedEdges: addedEdges?.length || 0,
+                updatedEdges: updatedEdges?.length || 0,
+                deletedEdges: deletedEdgeIds?.length || 0,
+            }
+        });
+    } catch (err) {
+        console.error('Failed to synchronize map changes:', err);
+        
+        // Handle specific Prisma errors
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
+            if (err.code === 'P2002') {
+                return res.status(409).json({ 
+                    error: 'Duplicate element detected. Please refresh the page and try again.',
+                    details: err.message 
+                });
+            }
+        }
+        
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 export default router; 
