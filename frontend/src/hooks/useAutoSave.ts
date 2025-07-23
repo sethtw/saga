@@ -32,7 +32,11 @@ export const useAutoSave = ({ onSave }: AutoSaveOptions) => {
                     onSave(nodes, edges);
                     clearChanges();
                 }
-                setDirty(false);
+                
+                // Only reset dirty flag if auto-save is enabled
+                if (autoSaveEnabled) {
+                    setDirty(false);
+                }
             }, autoSaveInterval);
         }
 

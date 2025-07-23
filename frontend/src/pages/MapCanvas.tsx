@@ -13,6 +13,16 @@ import { toast } from 'sonner';
 import { PlusIcon, HomeIcon, DiscIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import { useHotkeys } from '../hooks/use-hotkeys';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
     NavigationMenu,
     NavigationMenuContent,
     NavigationMenuItem,
@@ -126,6 +136,7 @@ const MapCanvas: React.FC = () => {
         loadOriginalState,
         getChangedElements,
         clearChanges,
+        isDirty,
     } = useMapStore();
     const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -134,6 +145,8 @@ const MapCanvas: React.FC = () => {
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUnsavedChangesModalOpen, setIsUnsavedChangesModalOpen] = useState(false);
+    const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
 
     // By exposing the store through the window, we can access it from anywhere in the app.
     // This is a temporary solution to get the save functionality working again.
@@ -189,6 +202,22 @@ const MapCanvas: React.FC = () => {
         };
         loadData();
     }, [campaignId, setNodes, setEdges, loadOriginalState]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+          if (isDirty) {
+            event.preventDefault();
+            event.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+            return "You have unsaved changes. Are you sure you want to leave?";
+          }
+        };
+    
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    
+        return () => {
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+      }, [isDirty]);
 
 
     const handleMenuAction = useCallback(async (action: string) => {
@@ -348,8 +377,13 @@ const MapCanvas: React.FC = () => {
     }, [addNode, campaignId]);
 
     const handleNavigateHome = useCallback(() => {
-        navigate('/');
-    }, [navigate]);
+        if (isDirty) {
+            setPendingNavigation(() => () => navigate('/'));
+            setIsUnsavedChangesModalOpen(true);
+        } else {
+            navigate('/');
+        }
+    }, [isDirty, navigate]);
 
     return (
         <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
@@ -422,6 +456,34 @@ const MapCanvas: React.FC = () => {
                 onSave={updateNodeData}
                 node={selectedNode}
             />
+            <AlertDialog open={isUnsavedChangesModalOpen} onOpenChange={setIsUnsavedChangesModalOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Do you want to save your changes before leaving? Your unsaved work will be lost otherwise.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                            if (pendingNavigation) {
+                                pendingNavigation();
+                            }
+                        }}>Leave without Saving</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-500 hover:bg-red-600"
+                            onClick={async () => {
+                                await handleSave();
+                                if (pendingNavigation) {
+                                    pendingNavigation();
+                                }
+                            }}
+                        >
+                            Save and Leave
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             {isGenerating && (
                 <div className="absolute bottom-4 right-4 z-10 rounded-md bg-background/80 p-4">
                     <p>Generating...</p>
