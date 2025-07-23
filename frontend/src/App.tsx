@@ -1,13 +1,22 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ReactFlowProvider } from 'reactflow';
 import ProjectDashboard from './pages/ProjectDashboard';
 import SettingsView from './pages/SettingsView';
 import MapCanvas from './pages/MapCanvas';
 import './index.css';
+import { Toaster } from 'sonner';
+import { useTheme } from './hooks/useTheme';
 
 function App() {
+  const [theme] = useTheme();
   return (
-    <Router>
+    <div
+      style={{
+        backgroundColor: theme.primary,
+        color: theme.text,
+      }}
+    >
+      <Toaster />
       <Routes>
         <Route path="/" element={<ProjectDashboard />} />
         <Route path="/settings" element={<SettingsView />} />
@@ -17,7 +26,7 @@ function App() {
           </ReactFlowProvider>
         } />
       </Routes>
-    </Router>
+    </div>
   );
 }
 

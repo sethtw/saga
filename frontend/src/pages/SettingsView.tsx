@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
 /**
  * @file SettingsView.tsx
@@ -13,6 +14,7 @@ interface SettingsForm {
 }
 
 const SettingsView: React.FC = () => {
+  const [, toggleTheme] = useTheme();
   const [formState, setFormState] = useState<SettingsForm>({
     campaignName: 'The Lost Mines of Phandelver',
     narrativeContext: 'A classic high-fantasy world with dragons, elves, and dwarves. The story is set in the region of the Sword Coast, a place of adventure and peril.',
@@ -37,9 +39,17 @@ const SettingsView: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-content">
-        <header className="mb-10">
-          <h1 className="page-title">Campaign Settings</h1>
-          <p className="text-muted mt-2">Manage your campaign's high-level details and AI prompt templates.</p>
+        <header className="mb-10 flex justify-between items-center">
+          <div>
+            <h1 className="page-title">Campaign Settings</h1>
+            <p className="text-muted mt-2">Manage your campaign's high-level details and AI prompt templates.</p>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="btn-secondary py-2 px-4"
+          >
+            Toggle Theme
+          </button>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">

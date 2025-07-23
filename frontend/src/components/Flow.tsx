@@ -46,7 +46,6 @@ const Flow: React.FC<FlowProps> = ({ onNodeContextMenu, getViewport: _getViewpor
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             onNodeContextMenu={onNodeContextMenu}
-            className="bg-gray-800"
         >
             <Controls />
             <MiniMap nodeStrokeWidth={3} zoomable pannable />
