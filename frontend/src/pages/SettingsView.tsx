@@ -4,13 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 const SettingsView: React.FC = () => {
     const {
         autoSaveEnabled,
         autoSaveInterval,
+        theme,
         setAutoSaveEnabled,
         setAutoSaveInterval,
+        setTheme,
     } = useSettingsStore();
 
     return (
@@ -38,6 +47,27 @@ const SettingsView: React.FC = () => {
                             onChange={(e) => setAutoSaveInterval(parseInt(e.target.value))}
                             disabled={!autoSaveEnabled}
                         />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        <Label htmlFor="theme-select">Theme</Label>
+                        <Select value={theme} onValueChange={(value) => setTheme(value as any)}>
+                            <SelectTrigger id="theme-select">
+                                <SelectValue placeholder="Select theme" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="light">Light</SelectItem>
+                                <SelectItem value="dark">Dark</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>

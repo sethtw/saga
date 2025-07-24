@@ -209,7 +209,7 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
       set({
         edges: edges.map((edge) => ({
           ...edge,
-          type: 'custom',
+          type: 'default',
           data: { ...edge.data, deleteEdge },
         })),
         areElementsDirty: true,

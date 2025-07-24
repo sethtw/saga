@@ -9,7 +9,7 @@ import ReactFlow, {
   type Viewport,
   type OnEdgeUpdateFunc,
   type NodeChange,
-  Edge,
+  type Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useMapStore from '../store/mapStore';
@@ -18,6 +18,7 @@ import RoomNode from './RoomNode';
 import CharacterNode from './CharacterNode';
 import ItemNode from './ItemNode';
 import CustomEdge from './CustomEdge';
+import { useTheme } from '../hooks/useTheme';
 
 const nodeTypes = {
   room: RoomNode,
@@ -57,6 +58,7 @@ const Flow: React.FC<FlowProps> = ({
   const { fitView } = useReactFlow();
   const [dragStartNodeInfo, setDragStartNodeInfo] = React.useState<{ position: { x: number, y: number }, startDate: Date } | null>(null);
   const [dragStartSelectionInfo, setDragStartSelectionInfo] = React.useState<Map<string, { x: number, y: number }> | null>(null);
+  const theme = useTheme();
 
   React.useEffect(() => {
     if (savedViewport) {
@@ -66,22 +68,26 @@ const Flow: React.FC<FlowProps> = ({
     }
   }, [nodes.length, fitView, savedViewport, setViewport]);
 
+  // Node Dragging
   const handleNodeDragStart = (_event: React.MouseEvent, node: Node) => {
     setDragStartNodeInfo({ position: { ...node.position }, startDate: new Date() });
     console.log('Node Drag Start');
   };
 
   const handleNodeDragStop = (_event: React.MouseEvent, node: Node) => {
+    console.log('Node Drag Stop - Start');
     if (dragStartNodeInfo && (dragStartNodeInfo.position.x !== node.position.x || dragStartNodeInfo.position.y !== node.position.y)) {
       const endDate = new Date();
       const duration = endDate.getTime() - dragStartNodeInfo.startDate.getTime();
       if (duration > 400) {
-        addPresentToPast('Node Dragged');
+        addPresentToPast('Node Drag Stop');
+        console.log('Node Drag Stop - Added to Past');
       }
     }
     setDragStartNodeInfo(null);
   };
 
+  // Selection
   const handleSelectionDragStart = (_event: React.MouseEvent, draggedNodes: Node[]) => {
     const positions = new Map(draggedNodes.map(n => [n.id, { ...n.position }]));
     setDragStartSelectionInfo(positions);
@@ -104,9 +110,25 @@ const Flow: React.FC<FlowProps> = ({
     setDragStartSelectionInfo(null);
   };
 
+  const handleSelectionContextMenu = (_event: React.MouseEvent, nodes: Node[]) => {
+    console.log('Selection Context Menu:', nodes);
+  };
+
+  const handleSelectionDrag = (_event: React.MouseEvent, nodes: Node[]) => {
+    console.log('Selection Dragged:', nodes);
+  };
+
+  const handleSelectionStart = (_event: React.MouseEvent) => {
+    console.log('Selection Started');
+  };
+
+  const handleSelectionEnd = (_event: React.MouseEvent) => {
+    console.log('Selection Ended');
+  };
+
   const handleNodesChange = (changes: NodeChange[]) => {
 
-    // console.log('handleNodesChange changes:', changes);
+    console.log('handleNodesChange changes:', changes);
 
     // // Check for resize changes
     // const resizeChange = changes.find(c => c.type === 'dimensions');
@@ -183,6 +205,7 @@ const Flow: React.FC<FlowProps> = ({
     onNodesChange(changes);
   };
 
+  // Node Clicking
   const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
     console.log('Node Clicked:', node.id);
   };
@@ -191,22 +214,7 @@ const Flow: React.FC<FlowProps> = ({
     console.log('Node Double Clicked:', node.id);
   };
 
-  const handleNodeDrag = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Dragged:', node.id);
-  };
-
-  const handleNodeMouseEnter = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Mouse Entered:', node.id);
-  };
-
-  const handleNodeMouseMove = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Mouse Moved:', node.id);
-  };
-
-  const handleNodeMouseLeave = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Mouse Left:', node.id);
-  };
-
+  // Edge Clicking
   const handleEdgeClick = (_event: React.MouseEvent, edge: Edge) => {
     console.log('Edge Clicked:', edge.id);
   };
@@ -226,7 +234,6 @@ const Flow: React.FC<FlowProps> = ({
       onNodeContextMenu={onNodeContextMenu}
       onNodeDoubleClick={onNodeDoubleClick}
       onMove={onViewportChange}
-      className={interactionMode === 'pan' ? 'grabbing' : ''}
       panOnDrag={interactionMode === 'pan'}
       selectionOnDrag={interactionMode === 'drag'}
       nodesDraggable={interactionMode === 'drag'}
@@ -235,11 +242,12 @@ const Flow: React.FC<FlowProps> = ({
       onSelectionDragStart={handleSelectionDragStart}
       onSelectionDragStop={handleSelectionDragStop}
       onNodeClick={handleNodeClick}
-      onNodeDrag={handleNodeDrag}
-      onNodeMouseEnter={handleNodeMouseEnter}
-      onNodeMouseMove={handleNodeMouseMove}
-      onNodeMouseLeave={handleNodeMouseLeave}
       onEdgeClick={handleEdgeClick}
+      onSelectionContextMenu={handleSelectionContextMenu}      
+      onSelectionDrag={handleSelectionDrag}
+      onSelectionStart={handleSelectionStart}
+      onSelectionEnd={handleSelectionEnd}
+      className={`${theme === 'dark' ? 'dark' : ''} ${interactionMode === 'pan' ? 'grabbing' : ''}`}
     >
       <Controls>
         <button onClick={() => fitView({ duration: 800 })} className="react-flow__controls-button">
@@ -247,7 +255,7 @@ const Flow: React.FC<FlowProps> = ({
         </button>
       </Controls>
       <MiniMap nodeStrokeWidth={3} zoomable pannable />
-      <Background variant={BackgroundVariant.Dots} color="#4f4f4f" gap={15} />
+      <Background variant={BackgroundVariant.Dots} gap={15} />
     </ReactFlow>
   );
 };

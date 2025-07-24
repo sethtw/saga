@@ -5,8 +5,10 @@ import SettingsView from './pages/SettingsView';
 import MapCanvas from './pages/MapCanvas';
 import './index.css';
 import { Toaster } from 'sonner';
+import { useTheme } from './hooks/useTheme';
 
 function App() {
+  useTheme();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Toaster />

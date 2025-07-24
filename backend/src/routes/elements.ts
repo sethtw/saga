@@ -5,34 +5,49 @@ import { nanoid } from 'nanoid';
 
 const router = Router();
 
-// POST /api/elements - Create a new map element
+/**
+ * @route POST /api/elements
+ * @description Create a new map element.
+ * @returns {object} 201 - The newly created element.
+ * @returns {object} 400 - If required fields are missing.
+ * @returns {object} 500 - If the element creation fails.
+ */
 router.post('/', async (req: Request, res: Response) => {
-    const { campaign_id, type, data, position, parent_element_id } = req.body;
+  const { campaign_id, type, data, position, parent_element_id } = req.body;
 
-    if (!campaign_id || !type || !position) {
-        return res.status(400).json({ error: 'Missing required fields for creating an element.' });
-    }
+  if (!campaign_id || !type || !position) {
+    return res.status(400).json({ error: 'Missing required fields for creating an element.' });
+  }
 
-    try {
-        const newElement = await prisma.mapElement.create({
-            data: {
-                id: nanoid(),
-                campaignId: campaign_id,
-                type: type,
-                positionX: position.x,
-                positionY: position.y,
-                data: data ? (data as Prisma.InputJsonValue) : Prisma.JsonNull,
-                parentElementId: parent_element_id,
-            },
-        });
-        res.status(201).json(newElement);
-    } catch (err) {
-        console.error('Failed to create element:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+  try {
+    const newElement = await prisma.mapElement.create({
+      data: {
+        id: nanoid(),
+        campaignId: campaign_id,
+        type: type,
+        positionX: position.x,
+        positionY: position.y,
+        data: data ? (data as Prisma.InputJsonValue) : Prisma.JsonNull,
+        parentElementId: parent_element_id,
+      },
+    });
+    res.status(201).json(newElement);
+  } catch (err) {
+    console.error('Failed to create element:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// PUT /api/elements/:elementId - Update a specific map element
+/**
+ * @route PUT /api/elements/:elementId
+ * @description Update a specific map element.
+ * @param {string} elementId - The ID of the element to update.
+ * @param {object} request.body - The data to update for the element.
+ * @returns {object} 200 - The updated element.
+ * @returns {object} 400 - If no data is provided for the update.
+ * @returns {object} 404 - If the element is not found.
+ * @returns {object} 500 - If the update fails.
+ */
 router.put('/:elementId', async (req: Request, res: Response) => {
   const { elementId } = req.params;
   const { data, width, height } = req.body;
@@ -61,7 +76,14 @@ router.put('/:elementId', async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/elements/:elementId - Delete a specific map element
+/**
+ * @route DELETE /api/elements/:elementId
+ * @description Delete a specific map element and any connected links.
+ * @param {string} elementId - The ID of the element to delete.
+ * @returns {object} 204 - No content, indicating successful deletion.
+ * @returns {object} 404 - If the element is not found.
+ * @returns {object} 500 - If the deletion fails.
+ */
 router.delete('/:elementId', async (req: Request, res: Response) => {
   const { elementId } = req.params;
 

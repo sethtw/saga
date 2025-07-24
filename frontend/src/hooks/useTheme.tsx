@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import useSettingsStore from '../store/settingsStore';
 
-export const useTheme = (): ['dark' | 'light', () => void] => {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const savedTheme = window.localStorage.getItem('theme') as 'dark' | 'light' | null;
-    return savedTheme || 'dark';
-  });
+export const useTheme = () => {
+    const theme = useSettingsStore((state) => state.theme);
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
+    useEffect(() => {
+        const root = window.document.documentElement;
+        const isDark =
+            theme === 'dark' ||
+            (theme === 'system' &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  useEffect(() => {
-    window.localStorage.setItem('theme', theme);
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
-  }, [theme]);
+        root.classList.remove('light', 'dark');
+        root.classList.add(isDark ? 'dark' : 'light');
+    }, [theme]);
 
-  return [theme, toggleTheme];
+    return theme;
 }; 

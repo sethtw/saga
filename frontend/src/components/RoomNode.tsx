@@ -20,7 +20,7 @@ const RoomNode: React.FC<NodeProps<RoomNodeData>> = ({ data, selected }) => {
   const [isResizing, setIsResizing] = useState(false);
 
   return (
-    <BaseNode className={isResizing ? 'nodrag' : ''}>
+    <BaseNode>
       <NodeResizer
         color="#ff0071"
         isVisible={selected}

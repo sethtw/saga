@@ -8,6 +8,17 @@ const router = Router();
 // import { GoogleGenerativeAI } from '@google/generative-ai';
 // const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
+/**
+ * @route POST /api/generate/character
+ * @description Generates a new character using a mocked LLM call based on a prompt and context.
+ * @param {object} request.body - The request body.
+ * @param {string} request.body.prompt - The user's prompt for character generation.
+ * @param {string} request.body.contextId - The ID of the parent map element (e.g., a room).
+ * @param {string} request.body.campaignId - The ID of the campaign.
+ * @returns {object} 201 - The newly created character map element.
+ * @returns {object} 400 - If required fields are missing.
+ * @returns {object} 500 - If character generation fails.
+ */
 router.post('/generate/character', async (req: Request, res: Response) => {
   const { prompt, contextId, campaignId } = req.body;
 
