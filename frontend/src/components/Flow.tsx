@@ -64,7 +64,7 @@ const Flow: React.FC<FlowProps> = ({
     if (savedViewport) {
       setViewport(savedViewport);
     } else if (nodes.length > 0) {
-      setTimeout(() => fitView({ duration: 800, padding: 0.1 }), 50);
+      setTimeout(() => fitView({ duration: 400, padding: 0.7 }), 50);
     }
   }, [nodes.length, fitView, savedViewport, setViewport]);
 
