@@ -110,113 +110,9 @@ const Flow: React.FC<FlowProps> = ({
     setDragStartSelectionInfo(null);
   };
 
-  const handleSelectionContextMenu = (_event: React.MouseEvent, nodes: Node[]) => {
-    console.log('Selection Context Menu:', nodes);
-  };
-
-  const handleSelectionDrag = (_event: React.MouseEvent, nodes: Node[]) => {
-    console.log('Selection Dragged:', nodes);
-  };
-
-  const handleSelectionStart = (_event: React.MouseEvent) => {
-    console.log('Selection Started');
-  };
-
-  const handleSelectionEnd = (_event: React.MouseEvent) => {
-    console.log('Selection Ended');
-  };
-
   const handleNodesChange = (changes: NodeChange[]) => {
-
     console.log('handleNodesChange changes:', changes);
-
-    // // Check for resize changes
-    // const resizeChange = changes.find(c => c.type === 'dimensions');
-
-    // if (resizeChange?.type === 'dimensions') {
-    //   if (resizeChange.resizing) {
-    //     // resize start
-    //     if (!resizeStartInfo) {
-    //       const node = nodes.find(n => n.id === resizeChange.id);
-    //       if (node?.width && node?.height) {
-    //         setResizeStartInfo({
-    //           id: node.id,
-    //           startDate: new Date(),
-    //           width: node.width,
-    //           height: node.height,
-    //           position: { x: node.position.x, y: node.position.y },
-    //         });
-    //         console.log('Node Resize Start');
-    //       }
-    //     }
-    //   } else if (resizeStartInfo && resizeStartInfo.id === resizeChange.id) {
-    //     // resize end
-    //     const endDate = new Date();
-    //     const duration = endDate.getTime() - resizeStartInfo.startDate.getTime();
-    //     console.log('Node Resize Duration:', duration);
-    //     if (duration > 2000) {
-    //       addPresentToPast('Node Resized');
-    //       console.log('Node Resized');
-    //     } else {
-    //       console.log('Node Resize Stop (no change)');
-    //     }
-    //     setResizeStartInfo(null);
-    //   }
-    // }
-
-    // // Check for node position changes
-    // const positionChange = changes.find(c => c.type === 'position');
-    // if (positionChange?.type === 'position') {
-    //   if (moveStartInfo && moveStartInfo.id === positionChange.id) {
-    //     const endDate = new Date();
-    //     const duration = endDate.getTime() - moveStartInfo.startDate.getTime();
-    //     console.log('Node Move Duration:', duration);
-    //     if (duration > 2000) {
-    //       addPresentToPast('Node Moved');
-    //       console.log('Node Moved');
-    //     } else {
-    //       console.log('Node Move Stop (no change)');
-    //     }
-    //     setMoveStartInfo(null);
-    //   }
-    // }
-
-    // // Check for node selection changes
-    // const selectionChange = changes.find(c => c.type === 'select');
-    // if (selectionChange?.type === 'select') {
-    //   if (selectionChange.selected) {
-    //     setSelectionStartInfo({ id: selectionChange.id, startDate: new Date() });
-    //   } else {
-    //     if (selectionStartInfo && selectionStartInfo.id === selectionChange.id) {
-    //       const endDate = new Date();
-    //       const duration = endDate.getTime() - selectionStartInfo.startDate.getTime();
-    //       console.log('Node Selection Duration:', duration);
-    //       if (duration > 2000) {
-    //         addPresentToPast('Node Selected');
-    //         console.log('Node Selected');
-    //       } else {
-    //         console.log('Node Selection Stop (no change)');
-    //       }
-    //       setSelectionStartInfo(null);
-    //     }
-    //   }
-    // }
-
     onNodesChange(changes);
-  };
-
-  // Node Clicking
-  const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Clicked:', node.id);
-  };
-
-  const handleNodeDoubleClick = (_event: React.MouseEvent, node: Node) => {
-    console.log('Node Double Clicked:', node.id);
-  };
-
-  // Edge Clicking
-  const handleEdgeClick = (_event: React.MouseEvent, edge: Edge) => {
-    console.log('Edge Clicked:', edge.id);
   };
 
   return (
@@ -241,12 +137,6 @@ const Flow: React.FC<FlowProps> = ({
       onNodeDragStop={handleNodeDragStop}
       onSelectionDragStart={handleSelectionDragStart}
       onSelectionDragStop={handleSelectionDragStop}
-      onNodeClick={handleNodeClick}
-      onEdgeClick={handleEdgeClick}
-      onSelectionContextMenu={handleSelectionContextMenu}      
-      onSelectionDrag={handleSelectionDrag}
-      onSelectionStart={handleSelectionStart}
-      onSelectionEnd={handleSelectionEnd}
       className={`${theme === 'dark' ? 'dark' : ''} ${interactionMode === 'pan' ? 'grabbing' : ''}`}
     >
       <Controls>
