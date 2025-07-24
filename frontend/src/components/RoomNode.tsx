@@ -4,6 +4,8 @@ import {
   BaseNode,
   BaseNodeHeader,
   BaseNodeHeaderTitle,
+  BaseNodeContent,
+  BaseNodeFooter
 } from './base-node';
 
 /**
@@ -29,11 +31,22 @@ const RoomNode: React.FC<NodeProps<RoomNodeData>> = ({ data, selected }) => {
         onResizeStart={() => setIsResizing(true)}
         onResizeEnd={() => setIsResizing(false)}
       />
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <BaseNodeHeader>
         <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
       </BaseNodeHeader>
-      <Handle type="source" position={Position.Bottom} />
+      <BaseNodeContent>
+        <div className="flex flex-col gap-2">
+          <p>Content</p>
+          <p>Content</p>
+        </div>
+      </BaseNodeContent>
+      <BaseNodeFooter>
+        <div className="flex flex-col gap-2">
+          <p>Footer</p>
+        </div>
+      </BaseNodeFooter>
+      <Handle type="source" position={Position.Right} />
     </BaseNode>
   );
 };

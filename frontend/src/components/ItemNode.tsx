@@ -20,12 +20,12 @@ const ItemNode: React.FC<NodeProps> = ({ data, selected }) => {
         onResizeStart={() => setIsResizing(true)}
         onResizeEnd={() => setIsResizing(false)}
       />
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <BaseNodeHeader>
         <PaperPlaneIcon className="h-5 w-5" />
         <BaseNodeHeaderTitle>{data.name || 'Item'}</BaseNodeHeaderTitle>
       </BaseNodeHeader>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </BaseNode>
   );
 };

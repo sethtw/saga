@@ -111,7 +111,6 @@ const Flow: React.FC<FlowProps> = ({
   };
 
   const handleNodesChange = (changes: NodeChange[]) => {
-    console.log('handleNodesChange changes:', changes);
     onNodesChange(changes);
   };
 
