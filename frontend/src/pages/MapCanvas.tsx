@@ -35,6 +35,7 @@ import useHistoryStore from '@/store/historyStore';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UndoIcon, RedoIcon, HistoryIcon } from 'lucide-react';
+import AlignmentToolbar, { type Alignment } from '@/components/AlignmentToolbar';
 
 // We need a separate component to render the flow so that we can wrap it in a ReactFlowProvider
 const FlowRenderer = ({ campaignId, onNodeDoubleClick }: { campaignId: string, onNodeDoubleClick: (event: React.MouseEvent, node: Node) => void }) => {
@@ -158,6 +159,7 @@ const MapCanvas: React.FC = () => {
   const [isUnsavedChangesModalOpen, setIsUnsavedChangesModalOpen] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
+  const [showAlignmentToolbar, setShowAlignmentToolbar] = useState(false);
 
   const { past, future, undo, redo } = useHistoryStore();
 
@@ -240,6 +242,7 @@ const MapCanvas: React.FC = () => {
   useEffect(() => {
     const { getNodes } = (window as any).reactFlowStore.getState();
     const selectedNodes = getNodes().filter((n: Node) => n.selected);
+    setShowAlignmentToolbar(selectedNodes.length > 1);
   }, [useMapStore().nodes]);
 
 
@@ -332,6 +335,25 @@ const MapCanvas: React.FC = () => {
       toast.info('Redo');
     }, { preventDefault: true }],
   ]);
+
+  const handleAlign = (alignment: Alignment) => {
+    const { getNodes } = (window as any).reactFlowStore.getState();
+    const selectedNodes = getNodes().filter((n: Node) => n.selected);
+
+    if (selectedNodes.length < 2) return;
+
+    useHistoryStore.getState().addPresentToPast(`Aligned nodes: ${alignment}`);
+
+    const { onNodesChange } = useMapStore.getState();
+
+    onNodesChange(selectedNodes.map((n: Node) => ({
+      id: n.id,
+      type: 'position',
+      position: n.position,
+    })));
+
+    toast.success('Nodes aligned');
+  };
 
   const handleSave = useCallback(async () => {
     if (!campaignId) return;
@@ -436,6 +458,7 @@ const MapCanvas: React.FC = () => {
     <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
       <Toaster />
       <FloatingToolbar onAddRoom={() => handleAddNode('room')} onAddItem={() => handleAddNode('item')} />
+      {showAlignmentToolbar && <AlignmentToolbar onAlign={handleAlign} />}
       <div className="absolute top-4 left-4 z-10 flex space-x-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
