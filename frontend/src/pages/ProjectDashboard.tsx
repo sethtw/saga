@@ -22,7 +22,7 @@ const ProjectDashboard: React.FC = () => {
 
   const fetchCampaigns = async () => {
     if (fetchingRef.current) return; // Prevent duplicate requests
-    
+
     try {
       fetchingRef.current = true;
       setLoading(true);
@@ -94,11 +94,11 @@ const ProjectDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-              <h3 className="text-lg font-semibold">No campaigns yet!</h3>
-              <p className="text-muted-foreground mt-2 mb-4">
-                  Get started by creating a new campaign.
-              </p>
-              <Button onClick={() => setIsModalOpen(true)}>Create New Campaign</Button>
+            <h3 className="text-lg font-semibold">No campaigns yet!</h3>
+            <p className="text-muted-foreground mt-2 mb-4">
+              Get started by creating a new campaign.
+            </p>
+            <Button onClick={() => setIsModalOpen(true)}>Create New Campaign</Button>
           </div>
         )}
       </main>
