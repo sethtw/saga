@@ -32,7 +32,6 @@ import { useAutoSave } from '../hooks/useAutoSave';
 import { nanoid } from 'nanoid';
 import FloatingToolbar from '@/components/FloatingToolbar';
 import useHistoryStore from '@/store/historyStore';
-import AlignmentToolbar, { type Alignment } from '@/components/AlignmentToolbar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UndoIcon, RedoIcon, HistoryIcon } from 'lucide-react';
@@ -159,7 +158,6 @@ const MapCanvas: React.FC = () => {
   const [isUnsavedChangesModalOpen, setIsUnsavedChangesModalOpen] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [copiedNodes, setCopiedNodes] = useState<Node[]>([]);
-  const [showAlignmentToolbar, setShowAlignmentToolbar] = useState(false);
 
   const { past, future, undo, redo } = useHistoryStore();
 
@@ -242,7 +240,6 @@ const MapCanvas: React.FC = () => {
   useEffect(() => {
     const { getNodes } = (window as any).reactFlowStore.getState();
     const selectedNodes = getNodes().filter((n: Node) => n.selected);
-    setShowAlignmentToolbar(selectedNodes.length > 1);
   }, [useMapStore().nodes]);
 
 
@@ -335,60 +332,6 @@ const MapCanvas: React.FC = () => {
       toast.info('Redo');
     }, { preventDefault: true }],
   ]);
-
-  const handleAlign = (alignment: Alignment) => {
-    const { getNodes } = (window as any).reactFlowStore.getState();
-    const selectedNodes = getNodes().filter((n: Node) => n.selected);
-
-    if (selectedNodes.length < 2) return;
-
-    useHistoryStore.getState().addPresentToPast(`Aligned nodes: ${alignment}`);
-
-    const { onNodesChange } = useMapStore.getState();
-
-    let newPositions = new Map<string, { x: number, y: number }>();
-
-    switch (alignment) {
-      case 'align-left': {
-        const minX = Math.min(...selectedNodes.map((n: Node) => n.position.x));
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: minX }));
-        break;
-      }
-      case 'align-horizontal-center': {
-        const centerX = selectedNodes.reduce((sum: number, n: Node) => sum + n.position.x + (n.width ?? 0) / 2, 0) / selectedNodes.length;
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: centerX - (n.width ?? 0) / 2 }));
-        break;
-      }
-      case 'align-right': {
-        const maxX = Math.max(...selectedNodes.map((n: Node) => n.position.x + (n.width ?? 0)));
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, x: maxX - (n.width ?? 0) }));
-        break;
-      }
-      case 'align-top': {
-        const minY = Math.min(...selectedNodes.map((n: Node) => n.position.y));
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: minY }));
-        break;
-      }
-      case 'align-vertical-center': {
-        const centerY = selectedNodes.reduce((sum: number, n: Node) => sum + n.position.y + (n.height ?? 0) / 2, 0) / selectedNodes.length;
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: centerY - (n.height ?? 0) / 2 }));
-        break;
-      }
-      case 'align-bottom': {
-        const maxY = Math.max(...selectedNodes.map((n: Node) => n.position.y + (n.height ?? 0)));
-        selectedNodes.forEach((n: Node) => newPositions.set(n.id, { ...n.position, y: maxY - (n.height ?? 0) }));
-        break;
-      }
-    }
-
-    onNodesChange(selectedNodes.map((n: Node) => ({
-      id: n.id,
-      type: 'position',
-      position: newPositions.get(n.id)!,
-    })));
-
-    toast.success('Nodes aligned');
-  };
 
   const handleSave = useCallback(async () => {
     if (!campaignId) return;
@@ -493,7 +436,6 @@ const MapCanvas: React.FC = () => {
     <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
       <Toaster />
       <FloatingToolbar onAddRoom={() => handleAddNode('room')} onAddItem={() => handleAddNode('item')} />
-      {showAlignmentToolbar && <AlignmentToolbar onAlign={handleAlign} />}
       <div className="absolute top-4 left-4 z-10 flex space-x-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
