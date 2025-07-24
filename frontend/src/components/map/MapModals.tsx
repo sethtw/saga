@@ -18,7 +18,7 @@ interface MapModalsProps {
   isGeneratorOpen: boolean;
   setIsGeneratorOpen: (isOpen: boolean) => void;
   setGenerationError: (error: string | null) => void;
-  handleGenerateSubmit: (prompt: string) => void;
+  handleGenerateSubmit: (prompt: string, provider?: string) => void;
   isEditModalOpen: boolean;
   setIsEditModalOpen: (isOpen: boolean) => void;
   updateNodeData: (id: string, data: any) => void;

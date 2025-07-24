@@ -94,4 +94,35 @@ export const api = {
     });
     return response.json();
   },
+
+  // LLM Generation Endpoints
+  generateCharacter: async (prompt: string, contextId: string, campaignId: string, provider?: string) => {
+    const response = await fetch('/api/generate/character', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, contextId, campaignId, provider }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Character generation failed');
+    }
+    
+    return response.json();
+  },
+
+  getAvailableProviders: async () => {
+    const response = await fetch('/api/generate/providers');
+    return response.json();
+  },
+
+  getUsageStats: async () => {
+    const response = await fetch('/api/generate/usage-stats');
+    return response.json();
+  },
+
+  testProviders: async () => {
+    const response = await fetch('/api/generate/test-providers');
+    return response.json();
+  },
 }; 
