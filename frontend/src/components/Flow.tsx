@@ -9,16 +9,15 @@ import ReactFlow, {
   type Viewport,
   type OnEdgeUpdateFunc,
   type NodeChange,
-  type Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import useMapStore from '../store/mapStore';
-import useHistoryStore from '../store/historyStore';
-import RoomNode from './RoomNode';
-import CharacterNode from './CharacterNode';
-import ItemNode from './ItemNode';
-import CustomEdge from './CustomEdge';
-import { useTheme } from '../hooks/useTheme';
+import useMapStore from '@/store/mapStore';
+import useHistoryStore from '@/store/historyStore';
+import RoomNode from '@/components/RoomNode';
+import CharacterNode from '@/components/CharacterNode';
+import ItemNode from '@/components/ItemNode';
+import CustomEdge from '@/components/CustomEdge';
+import { useTheme } from '@/hooks/useTheme';
 
 const nodeTypes = {
   room: RoomNode,

@@ -10,12 +10,8 @@ import {
   type OnNodesChange,
   type OnEdgesChange,
   type OnEdgeUpdateFunc,
-  type NodeChange,
-  type EdgeChange,
 } from 'reactflow';
 import { type StateCreator } from 'zustand';
-import useHistoryStore from './historyStore';
-import { nanoid } from 'nanoid';
 
 /**
  * @file mapStore.ts
@@ -255,7 +251,6 @@ const stateCreator: StateCreator<MapState & MapActions> = (set, get) => {
     },
     deleteEdge: (edgeId) => {
       const currentEdges = get().edges;
-      const edge = currentEdges.find(e => e.id === edgeId);
       const changes = get().changes;
 
       if (changes.addedEdges.has(edgeId)) {
