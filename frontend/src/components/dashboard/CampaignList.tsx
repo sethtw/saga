@@ -9,9 +9,10 @@ interface CampaignListProps {
   campaigns: Campaign[];
   loading: boolean;
   onNewCampaign: () => void;
+  onDelete: (campaignId: number) => void;
 }
 
-const CampaignList: React.FC<CampaignListProps> = ({ campaigns, loading, onNewCampaign }) => {
+const CampaignList: React.FC<CampaignListProps> = ({ campaigns, loading, onNewCampaign, onDelete }) => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -44,7 +45,7 @@ const CampaignList: React.FC<CampaignListProps> = ({ campaigns, loading, onNewCa
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {campaigns.map((campaign) => (
-        <CampaignCard key={campaign.id} campaign={campaign} />
+        <CampaignCard key={campaign.id} campaign={campaign} onDelete={onDelete} />
       ))}
     </div>
   );

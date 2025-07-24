@@ -51,6 +51,17 @@ export const updateCampaign = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteCampaign = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await campaignService.deleteCampaign(parseInt(id, 10));
+    res.status(204).send();
+  } catch (err) {
+    console.error(`Failed to delete campaign with id ${id}:`, err);
+    res.status(500).json({ error: 'Failed to delete campaign.' });
+  }
+};
+
 export const getMapElements = async (req: Request, res: Response) => {
   const { campaignId } = req.params;
   try {

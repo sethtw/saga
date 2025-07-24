@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import NewCampaignModal from '../components/NewCampaignModal';
-import { useCampaigns } from '../hooks/dashboard/useCampaigns';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
-import CampaignList from '../components/dashboard/CampaignList';
+import NewCampaignModal from '@/components/NewCampaignModal';
+import { useCampaigns } from '@/hooks/dashboard/useCampaigns';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import CampaignList from '@/components/dashboard/CampaignList';
 
 const ProjectDashboard: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { campaigns, loading, addCampaign } = useCampaigns();
+  const { campaigns, loading, addCampaign, deleteCampaign } = useCampaigns();
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
@@ -18,6 +18,7 @@ const ProjectDashboard: React.FC = () => {
           campaigns={campaigns} 
           loading={loading} 
           onNewCampaign={() => setIsModalOpen(true)}
+          onDelete={deleteCampaign}
         />
       </main>
 

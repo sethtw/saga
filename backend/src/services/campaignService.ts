@@ -40,6 +40,14 @@ export const updateCampaign = (
   });
 };
 
+export const deleteCampaign = (id: number) => {
+  return prisma.$transaction(async (tx) => {
+    await tx.mapLink.deleteMany({ where: { campaignId: id } });
+    await tx.mapElement.deleteMany({ where: { campaignId: id } });
+    await tx.campaign.delete({ where: { id } });
+  });
+};
+
 export const getMapElements = async (campaignId: number) => {
   const dbNodes = await prisma.mapElement.findMany({
     where: { campaignId },

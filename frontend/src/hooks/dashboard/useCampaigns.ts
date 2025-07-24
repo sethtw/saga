@@ -32,5 +32,15 @@ export const useCampaigns = () => {
     fetchCampaigns();
   };
 
-  return { campaigns, loading, addCampaign, refetch: fetchCampaigns };
+  const deleteCampaign = async (campaignId: number) => {
+    console.log('Deleting campaign:', campaignId);
+    try {
+      await api.deleteCampaign(campaignId);
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+    }
+  };
+
+  return { campaigns, loading, addCampaign, deleteCampaign, refetch: fetchCampaigns };
 }; 
