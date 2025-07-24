@@ -20,7 +20,7 @@ import { type StateCreator } from 'zustand';
  */
 
 // Type definitions for node data
-interface RoomNodeData {
+interface AreaNodeData {
   label: string;
 }
 
@@ -33,7 +33,7 @@ interface CharacterNodeData {
   description: string;
 }
 
-type NodeData = RoomNodeData | ItemNodeData | CharacterNodeData;
+type NodeData = AreaNodeData | ItemNodeData | CharacterNodeData;
 
 // Change tracking types
 interface ChangeTracker {

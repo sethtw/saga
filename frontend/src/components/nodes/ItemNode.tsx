@@ -4,7 +4,7 @@ import {
   BaseNode,
   BaseNodeHeader,
   BaseNodeHeaderTitle,
-} from './base-node';
+} from '@/components/base-node';
 import { PaperPlaneIcon } from '@radix-ui/react-icons';
 
 const ItemNode: React.FC<NodeProps> = ({ data, selected }) => {

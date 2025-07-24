@@ -74,12 +74,12 @@ export const useMapInteraction = () => {
     }
   }, [addNode, menu]);
 
-  const handleAddNode = useCallback(async (type: 'room' | 'item' = 'room') => {
+  const handleAddNode = useCallback(async (type: 'area' | 'item' = 'area') => {
     const position = {
       x: Math.random() * 400 - 200,
       y: Math.random() * 400 - 200,
     };
-    const data = type === 'room'
+    const data = type === 'area'
       ? { label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` }
       : { name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` };
 

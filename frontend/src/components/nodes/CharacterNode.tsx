@@ -5,7 +5,7 @@ import {
   BaseNodeContent,
   BaseNodeHeader,
   BaseNodeHeaderTitle,
-} from './base-node';
+} from '@/components/base-node';
 
 /**
  * @file CharacterNode.tsx

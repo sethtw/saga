@@ -13,14 +13,14 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import useMapStore from '@/store/mapStore';
 import useHistoryStore from '@/store/historyStore';
-import RoomNode from '@/components/RoomNode';
-import CharacterNode from '@/components/CharacterNode';
-import ItemNode from '@/components/ItemNode';
+import AreaNode from '@/components/nodes/AreaNode';
+import CharacterNode from '@/components/nodes/CharacterNode';
+import ItemNode from '@/components/nodes/ItemNode';
 import CustomEdge from '@/components/CustomEdge';
 import { useTheme } from '@/hooks/useTheme';
 
 const nodeTypes = {
-  room: RoomNode,
+  area: AreaNode,
   character: CharacterNode,
   item: ItemNode,
 };

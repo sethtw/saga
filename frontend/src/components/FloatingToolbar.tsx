@@ -14,11 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FloatingToolbarProps {
-  onAddRoom: () => void;
+  onAddArea: () => void;
   onAddItem: () => void;
 }
 
-const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddRoom, onAddItem }) => {
+const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddArea, onAddItem }) => {
   const { interactionMode, setInteractionMode } = useMapStore();
   const { undo, redo, past, future } = useHistoryStore();
 
@@ -41,12 +41,12 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddRoom, onAddItem 
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={onAddRoom} variant="ghost" size="icon">
+            <Button onClick={onAddArea} variant="ghost" size="icon">
               <PlusIcon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Add Room</p>
+            <p>Add Area</p>
           </TooltipContent>
         </Tooltip>
         <Tooltip>

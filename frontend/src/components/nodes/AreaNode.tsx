@@ -6,19 +6,19 @@ import {
   BaseNodeHeaderTitle,
   BaseNodeContent,
   BaseNodeFooter
-} from './base-node';
+} from '@/components/base-node';
 
 /**
- * @file RoomNode.tsx
- * @description A component representing a "Room" on the map. Rooms are containers
+ * @file AreaNode.tsx
+ * @description A component representing an "Area" on the map. Areas are containers
  * for other elements and can be connected to other nodes.
  */
 
-interface RoomNodeData {
+interface AreaNodeData {
   label: string;
 }
 
-const RoomNode: React.FC<NodeProps<RoomNodeData>> = ({ data, selected }) => {
+const AreaNode: React.FC<NodeProps<AreaNodeData>> = ({ data, selected }) => {
   const [isResizing, setIsResizing] = useState(false);
 
   return (
@@ -51,4 +51,4 @@ const RoomNode: React.FC<NodeProps<RoomNodeData>> = ({ data, selected }) => {
   );
 };
 
-export default memo(RoomNode); 
+export default memo(AreaNode); 

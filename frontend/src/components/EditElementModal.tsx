@@ -67,7 +67,7 @@ const EditElementModal: React.FC<EditElementModalProps> = ({
 
   const renderFormFields = () => {
     switch (node.type) {
-      case 'room':
+      case 'area':
         return (
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
