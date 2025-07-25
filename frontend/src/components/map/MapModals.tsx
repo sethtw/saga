@@ -18,7 +18,7 @@ interface MapModalsProps {
   isGeneratorOpen: boolean;
   setIsGeneratorOpen: (isOpen: boolean) => void;
   setGenerationError: (error: string | null) => void;
-  handleGenerateSubmit: (prompt: string, provider?: string) => void;
+  handleGenerateSubmit: (prompt: string, provider?: string, objectType?: string) => void;
   isEditModalOpen: boolean;
   setIsEditModalOpen: (isOpen: boolean) => void;
   updateNodeData: (id: string, data: any) => void;
@@ -52,7 +52,9 @@ const MapModals: React.FC<MapModalsProps> = ({
           setGenerationError(null);
         }}
         onSubmit={handleGenerateSubmit}
-        title="Generate a New Character"
+        title="Generate New Content"
+        defaultObjectType="character"
+        showObjectTypeSelector={true}
       />
       <EditElementModal
         isOpen={isEditModalOpen}

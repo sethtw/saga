@@ -1,5 +1,6 @@
 import { type Node, type Edge } from 'reactflow';
 import { type Campaign } from '../types/campaign';
+import { type ObjectTypeDefinition, type GeneratedObject } from '../types/objectTypes';
 
 /**
  * @file api.ts
@@ -18,6 +19,28 @@ export interface SyncChanges {
   addedEdges: Edge[];
   updatedEdges: Edge[];
   deletedEdgeIds: string[];
+}
+
+export interface LLMProvider {
+  name: string;
+  model: string;
+  available: boolean;
+  enabled: boolean;
+}
+
+export interface LLMUsageStats {
+  totalRequests: number;
+  successfulRequests: number;
+  totalTokens: number;
+  totalCost: number;
+  averageResponseTime: number;
+  providerBreakdown: {
+    [provider: string]: {
+      requests: number;
+      tokens: number;
+      cost: number;
+    };
+  };
 }
 
 export const api = {
@@ -95,7 +118,7 @@ export const api = {
     return response.json();
   },
 
-  // LLM Generation Endpoints
+  // Legacy LLM Generation Endpoints (for backward compatibility)
   generateCharacter: async (prompt: string, contextId: string, campaignId: string, provider?: string) => {
     const response = await fetch('/api/generate/character', {
       method: 'POST',
@@ -111,18 +134,70 @@ export const api = {
     return response.json();
   },
 
-  getAvailableProviders: async () => {
+  // Generic Object Generation System
+  generateObject: async (
+    objectType: string, 
+    prompt: string, 
+    contextId: string, 
+    campaignId: string, 
+    provider?: string
+  ): Promise<GeneratedObject> => {
+    const response = await fetch(`/api/generate/object/${objectType}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, contextId, campaignId, provider }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `${objectType} generation failed`);
+    }
+    
+    return response.json();
+  },
+
+  // Object Type Discovery
+  getObjectTypes: async (): Promise<ObjectTypeDefinition[]> => {
+    const response = await fetch('/api/generate/object-types');
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch object types');
+    }
+    
+    return response.json();
+  },
+
+  getObjectTypeDefinition: async (objectType: string): Promise<ObjectTypeDefinition> => {
+    const response = await fetch(`/api/generate/object-types/${objectType}`);
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `Failed to fetch ${objectType} definition`);
+    }
+    
+    return response.json();
+  },
+
+  // Enhanced Character Generation (using generic system)
+  generateCharacterGeneric: async (prompt: string, contextId: string, campaignId: string, provider?: string): Promise<GeneratedObject> => {
+    return api.generateObject('character', prompt, contextId, campaignId, provider);
+  },
+
+  // LLM Provider Management
+  getAvailableProviders: async (): Promise<LLMProvider[]> => {
     const response = await fetch('/api/generate/providers');
     return response.json();
   },
 
-  getUsageStats: async () => {
+  getUsageStats: async (): Promise<LLMUsageStats> => {
     const response = await fetch('/api/generate/usage-stats');
     return response.json();
   },
 
   testProviders: async () => {
-    const response = await fetch('/api/generate/test-providers');
+    const response = await fetch('/api/generate/test-providers', {
+      method: 'POST',
+    });
     return response.json();
   },
 }; 

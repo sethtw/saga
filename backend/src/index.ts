@@ -4,6 +4,7 @@ import cors from "cors";
 import campaignRouter from './routes/campaigns';
 import generateRouter from './routes/generate';
 import elementsRouter from './routes/elements';
+import { autoRegisterObjectTypes } from './config/objectRegistry';
 
 
 dotenv.config();
@@ -30,7 +31,19 @@ app.use('/api/campaigns', campaignRouter);
 app.use('/api/generate', generateRouter);
 app.use('/api/elements', elementsRouter);
 
+// Initialize object registry and start server
+async function startServer() {
+  try {
+    // Initialize object type registry
+    await autoRegisterObjectTypes();
+    
+    app.listen(port, () => {
+      console.log(`[server]: Server is running at http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+startServer();

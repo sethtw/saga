@@ -82,6 +82,14 @@ export class PromptService {
   }
 
   /**
+   * Generic prompt generation for any template and context
+   */
+  generatePrompt(templateName: string, context: PromptContext): string {
+    const template = this.loadTemplate(templateName);
+    return this.processTemplate(template, context);
+  }
+
+  /**
    * Get list of available prompt templates
    */
   getAvailableTemplates(): string[] {

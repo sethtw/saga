@@ -7,14 +7,19 @@ import { type Node } from 'reactflow';
 import { nanoid } from 'nanoid';
 import useHistoryStore from '@/store/historyStore';
 import { type Alignment } from '@/components/AlignmentToolbar';
+import { useObjectGeneration } from '@/hooks/useObjectGeneration';
+import { useObjectTypes } from '@/hooks/useObjectTypes';
 
 export const useMapInteraction = () => {
   const { menu, setMenu, addNode, deleteNode, updateNodeData, onNodesChange } = useMapStore();
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+
+  // Use the new generic object generation system
+  const { generateObject, generateCharacter, isGenerating, error: objectGenerationError } = useObjectGeneration();
+  const { getObjectTypeDisplayName } = useObjectTypes();
 
   const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
@@ -34,7 +39,7 @@ export const useMapInteraction = () => {
       try {
         await api.deleteElement(node.id.toString());
         deleteNode(node.id);
-        toast.success(`Element "${node.data.name || node.id}" deleted successfully.`);
+        toast.success(`Element "${node.data.name || node.data.label || node.id}" deleted successfully.`);
       } catch (error) {
         console.error('Failed to delete element:', error);
         toast.error('Failed to delete element.');
@@ -45,7 +50,12 @@ export const useMapInteraction = () => {
     setMenu(null);
   }, [menu, deleteNode, updateNodeData, setMenu]);
 
-  const handleGenerateSubmit = useCallback(async (prompt: string, provider?: string) => {
+  // Enhanced generation submit handler that supports any object type
+  const handleGenerateSubmit = useCallback(async (
+    prompt: string, 
+    provider?: string, 
+    objectType: string = 'character'
+  ) => {
     if (!menu) return;
 
     const { campaignId } = (window as any).location.pathname.match(/\/campaigns\/(\d+)/) || [];
@@ -54,29 +64,38 @@ export const useMapInteraction = () => {
       return;
     }
 
-    setIsGenerating(true);
     setGenerationError(null);
 
     try {
       setIsGeneratorOpen(false);
 
-      // Call the real LLM API
-      const response = await api.generateCharacter(
+      console.log(`🎯 Generating ${objectType} using generic frontend system`);
+
+      // Use the new generic object generation system
+      const result = await generateObject(
+        objectType,
         prompt,
         menu.node.id,
         campaignId,
         provider
       );
 
-      // Create the new character node with LLM-generated data
+      if (!result) {
+        // Error toast already shown by the hook
+        return;
+      }
+
+      // Create the new node with generic object data
       const newNode: Node = {
-        id: response.id,
-        type: 'character',
+        id: result.id,
+        type: objectType === 'character' ? 'character' : 'character', // For now, use character node for all types
         position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
         data: {
-          ...response.data,
-          // Store LLM metadata for analytics
-          llmMetadata: response.llmMetadata
+          ...result.data,
+          // Add object type information for the node
+          objectType: result.objectType,
+          // Store LLM metadata for analytics and tooltips
+          llmMetadata: result.metadata
         },
         parentId: menu.node.id,
         extent: 'parent',
@@ -84,21 +103,14 @@ export const useMapInteraction = () => {
 
       addNode(newNode);
       
-      // Show success message with provider info
-      const providerName = response.llmMetadata?.provider || 'LLM';
-      const cost = response.llmMetadata?.costEstimate?.toFixed(4) || '0';
-      const tokens = response.llmMetadata?.tokensUsed || 0;
-      
-      toast.success(
-        `Character "${response.data.name}" generated successfully! ` +
-        `(${providerName} • ${tokens} tokens • $${cost})`
-      );
+      // Success toast is already shown by the hook with detailed info
+      console.log(`✅ Successfully created ${objectType} node:`, newNode);
 
     } catch (error: any) {
-      console.error('Failed to generate character:', error);
+      console.error(`Failed to generate ${objectType}:`, error);
       
-      // Handle specific LLM errors
-      let errorMessage = 'Failed to generate character. Please try again.';
+      // Handle specific errors that might not be caught by the hook
+      let errorMessage = `Failed to generate ${getObjectTypeDisplayName(objectType)}. Please try again.`;
       
       if (error.message) {
         if (error.message.includes('No LLM providers')) {
@@ -107,6 +119,8 @@ export const useMapInteraction = () => {
           errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
         } else if (error.message.includes('authentication')) {
           errorMessage = 'LLM authentication failed. Please check your API keys.';
+        } else if (error.message.includes('Invalid object type')) {
+          errorMessage = `Invalid object type: ${objectType}. Please try a different type.`;
         } else {
           errorMessage = error.message;
         }
@@ -114,10 +128,22 @@ export const useMapInteraction = () => {
       
       setGenerationError(errorMessage);
       toast.error(errorMessage);
-    } finally {
-      setIsGenerating(false);
     }
-  }, [addNode, menu]);
+  }, [addNode, menu, generateObject, getObjectTypeDisplayName]);
+
+  // Backward compatibility method for character generation
+  const handleGenerateCharacterSubmit = useCallback(async (prompt: string, provider?: string) => {
+    return handleGenerateSubmit(prompt, provider, 'character');
+  }, [handleGenerateSubmit]);
+
+  // Enhanced method for generating any object type
+  const handleGenerateObjectSubmit = useCallback(async (
+    objectType: string,
+    prompt: string, 
+    provider?: string
+  ) => {
+    return handleGenerateSubmit(prompt, provider, objectType);
+  }, [handleGenerateSubmit]);
 
   const handleAddNode = useCallback(async (type: 'area' | 'item' = 'area') => {
     const position = {
@@ -163,7 +189,12 @@ export const useMapInteraction = () => {
   return {
     onNodeDoubleClick,
     handleMenuAction,
-    handleGenerateSubmit,
+    
+    // Generation methods (enhanced)
+    handleGenerateSubmit, // Generic method
+    handleGenerateCharacterSubmit, // Backward compatibility
+    handleGenerateObjectSubmit, // Explicit object type method
+    
     handleAddNode,
     handleAlign,
     isGeneratorOpen,
@@ -172,7 +203,7 @@ export const useMapInteraction = () => {
     setIsEditModalOpen,
     selectedNode,
     isGenerating,
-    generationError,
+    generationError: generationError || objectGenerationError,
     setGenerationError,
   };
 }; 
