@@ -86,9 +86,10 @@ export const useMapInteraction = () => {
       }
 
       // Create the new node with generic object data
+      // Map all generated objects to 'character' node type for display
       const newNode: Node = {
         id: result.id,
-        type: objectType === 'character' ? 'character' : 'character', // For now, use character node for all types
+        type: 'character', // Use character node for all generated objects
         position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
         data: {
           ...result.data,

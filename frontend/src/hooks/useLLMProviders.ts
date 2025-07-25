@@ -89,7 +89,7 @@ export const useLLMProviders = () => {
       'gemini': `Google Gemini (${provider.model})`,
       'openai': `OpenAI (${provider.model})`,
       'claude': `Anthropic Claude (${provider.model})`,
-      'groq': `Groq (${provider.model}) - Free`
+      'grok': `xAI Grok (${provider.model})`
     };
     
     return displayNames[providerName] || `${providerName} (${provider.model})`;
@@ -100,7 +100,7 @@ export const useLLMProviders = () => {
       'gemini': { cost: '$0.075/1k tokens', description: 'Cost-effective, fast' },
       'openai': { cost: '$0.15/1k tokens', description: 'Good balance' },
       'claude': { cost: '$0.25/1k tokens', description: 'Premium quality' },
-      'groq': { cost: 'Free', description: 'Ultra-fast, free tier' }
+      'grok': { cost: 'Free', description: 'xAI Grok - Fast and free' }
     };
     
     return costInfo[providerName] || { cost: 'Unknown', description: 'Unknown' };

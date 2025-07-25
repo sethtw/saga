@@ -80,12 +80,38 @@ export class ObjectGenerationService {
   }
 
   /**
+   * Extract JSON from LLM response (handles markdown code blocks)
+   */
+  private extractJsonFromResponse(response: string): string {
+    // Remove markdown code blocks if present
+    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      return jsonMatch[1].trim();
+    }
+    
+    // Look for JSON object that starts with { and ends with }
+    const jsonObjectMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonObjectMatch) {
+      return jsonObjectMatch[0].trim();
+    }
+    
+    // If no patterns found, return the response as-is
+    return response.trim();
+  }
+
+  /**
    * Validate object data using the object type's schema
    */
   async validateObjectData(objectType: string, jsonString: string): Promise<any> {
     try {
       const objectDefinition = objectRegistry.get(objectType);
-      const parsed = JSON.parse(jsonString);
+      
+      // Extract JSON from markdown code blocks if present
+      const cleanJsonString = this.extractJsonFromResponse(jsonString);
+      console.log(`--- Extracted JSON for ${objectType} ---`);
+      console.log(cleanJsonString);
+      
+      const parsed = JSON.parse(cleanJsonString);
       
       // Use zod schema for validation
       const result = objectDefinition.zodSchema.safeParse(parsed);

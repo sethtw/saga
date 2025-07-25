@@ -3,7 +3,7 @@ import { llmConfig, getEnabledProviders, isValidProvider } from '../../config/ll
 import { GeminiProvider } from './providers/gemini';
 import { OpenAIProvider } from './providers/openai';
 import { ClaudeProvider } from './providers/claude';
-import { GroqProvider } from './providers/groq';
+import { GrokProvider } from './providers/grok';
 
 export class LLMService {
   private providers: Map<string, LLMProvider> = new Map();
@@ -18,21 +18,13 @@ export class LLMService {
     const gemini = new GeminiProvider();
     const openai = new OpenAIProvider();
     const claude = new ClaudeProvider();
-    const groq = new GroqProvider();
+    const grok = new GrokProvider();
 
-    // Only register providers that are available (have proper API keys)
-    if (gemini.isAvailable()) {
-      this.providers.set('gemini', gemini);
-    }
-    if (openai.isAvailable()) {
-      this.providers.set('openai', openai);
-    }
-    if (claude.isAvailable()) {
-      this.providers.set('claude', claude);
-    }
-    if (groq.isAvailable()) {
-      this.providers.set('groq', groq);
-    }
+    // Register all providers, even if not available (for proper error handling)
+    this.providers.set('gemini', gemini);
+    this.providers.set('openai', openai);
+    this.providers.set('claude', claude);
+    this.providers.set('grok', grok);
 
     console.log(`LLM Service initialized with providers: ${Array.from(this.providers.keys()).join(', ')}`);
   }
@@ -41,9 +33,11 @@ export class LLMService {
    * Get the best available provider based on request preferences and configuration
    */
   private selectProvider(requestedProvider?: string): LLMProvider {
-    // If a specific provider is requested and it's available, use it
-    if (requestedProvider && this.providers.has(requestedProvider) && isValidProvider(requestedProvider)) {
-      return this.providers.get(requestedProvider)!;
+    // If a specific provider is requested, use it (even if not available for proper error handling)
+    if (requestedProvider && this.providers.has(requestedProvider)) {
+      const provider = this.providers.get(requestedProvider)!;
+      // If the requested provider is not available, it will throw an error when we try to use it
+      return provider;
     }
 
     // Fall back to default provider if available
@@ -122,7 +116,7 @@ export class LLMService {
    * Get list of available providers
    */
   getAvailableProviders(): Array<{ name: string; model: string; available: boolean; enabled: boolean }> {
-    const allProviders = ['gemini', 'openai', 'claude', 'groq'];
+    const allProviders = ['gemini', 'openai', 'claude', 'grok'];
     
     return allProviders.map(name => {
       const provider = this.providers.get(name);

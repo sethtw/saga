@@ -41,12 +41,12 @@ export const llmConfig: LLMConfig = {
       enabled: process.env.ENABLE_CLAUDE === 'true',
       costPer1kTokens: 0.25, // Approximate cost in USD
     },
-    groq: {
-      model: 'llama3-8b-8192', // Free tier available
+    grok: {
+      model: 'grok-1', // xAI Grok model
       maxTokens: 2048,
       temperature: 0.7,
-      enabled: process.env.ENABLE_GROQ === 'true',
-      costPer1kTokens: 0.0, // Free tier
+      enabled: process.env.ENABLE_GROK === 'true',
+      costPer1kTokens: 0.0, // Free tier for now
     },
   },
 };
