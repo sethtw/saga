@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Handle, Position, NodeResizer, NodeProps } from 'reactflow';
 import {
   BaseNode,
@@ -67,11 +67,26 @@ interface ObjectNodeProps extends NodeProps<GenericObjectData> {
 
 const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
   const [isResizing, setIsResizing] = useState(false);
+  const [objectTypeDefinition, setObjectTypeDefinition] = useState<any>(null);
   const { getObjectTypeDefinition, getObjectTypeDisplayName, getObjectTypeIcon } = useObjectTypes();
 
   // Determine object type (fallback to 'character' for backward compatibility)
   const objectType = data.objectType || 'character';
-  const objectTypeDefinition = getObjectTypeDefinition(objectType);
+
+  // Load object type definition asynchronously
+  useEffect(() => {
+    const loadObjectTypeDefinition = async () => {
+      try {
+        const definition = await getObjectTypeDefinition(objectType);
+        setObjectTypeDefinition(definition);
+      } catch (error) {
+        console.error(`Failed to load object type definition for ${objectType}:`, error);
+        setObjectTypeDefinition(null);
+      }
+    };
+
+    loadObjectTypeDefinition();
+  }, [objectType, getObjectTypeDefinition]);
 
   // Render field based on its configuration
   const renderField = (key: string, value: any, fieldConfig?: any) => {
@@ -95,7 +110,7 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
             <div className="grid grid-cols-3 gap-1 text-xs">
               {Object.entries(value).slice(0, 6).map(([stat, statValue]) => (
                 <span key={stat} className="text-muted-foreground">
-                  <strong>{stat.toUpperCase()}:</strong> {statValue}
+                  <strong>{stat.toUpperCase()}:</strong> {String(statValue)}
                 </span>
               ))}
             </div>
@@ -130,8 +145,8 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
   const getDisplayFields = () => {
     if (objectTypeDefinition?.displayFields) {
       return objectTypeDefinition.displayFields
-        .sort((a, b) => a.priority - b.priority)
-        .filter(field => {
+        .sort((a: any, b: any) => a.priority - b.priority)
+        .filter((field: any) => {
           const value = data[field.key];
           if (!value) return false;
           if (field.condition) {
@@ -225,7 +240,7 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
             </p>
             
             {/* Render fields based on object type definition */}
-            {displayFields.map((field) => {
+            {displayFields.map((field: any) => {
               const value = data[field.key];
               if (!value || field.key === 'name' || field.key === 'description') return null;
               

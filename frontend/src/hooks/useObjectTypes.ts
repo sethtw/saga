@@ -63,6 +63,7 @@ export const useObjectTypes = () => {
         objectTypes: [...prev.objectTypes.filter(t => t.name !== objectType), definition],
       }));
       
+      console.log(`✅ Loaded object type definition for ${objectType}:`, definition);
       return definition;
     } catch (error) {
       console.error(`Failed to load object type definition for ${objectType}:`, error);
