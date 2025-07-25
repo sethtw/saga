@@ -68,7 +68,7 @@ const MapCanvas: React.FC = () => {
   return (
     <div className="relative h-screen w-screen" onClick={() => setMenu(null)}>
       <Toaster />
-      <FloatingToolbar onAddArea={() => handleAddNode('area')} onAddItem={() => handleAddNode('item')} />
+      <FloatingToolbar onAddNode={handleAddNode} />
       {showAlignmentToolbar && <AlignmentToolbar onAlign={handleAlign} />}
       <TopLeftToolbar
         handleSave={handleSave}

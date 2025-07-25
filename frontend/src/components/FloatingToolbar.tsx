@@ -12,15 +12,22 @@ import useHistoryStore from '@/store/historyStore';
 import { ArrowLeftIcon, ArrowRightIcon, ClockIcon } from '@radix-ui/react-icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useObjectTypes } from '@/hooks/useObjectTypes';
 
 interface FloatingToolbarProps {
-  onAddArea: () => void;
-  onAddItem: () => void;
+  onAddNode: (objectType: string) => void;
 }
 
-const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddArea, onAddItem }) => {
+const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddNode }) => {
   const { interactionMode, setInteractionMode } = useMapStore();
   const { undo, redo, past, future } = useHistoryStore();
+  const { objectTypes, getObjectTypeIcon } = useObjectTypes();
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-background rounded-md shadow-md p-2 flex gap-2">
@@ -39,26 +46,26 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ onAddArea, onAddItem 
             <p>Switch to {interactionMode === 'drag' ? 'Pan' : 'Drag'} Mode (V)</p>
           </TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={onAddArea} variant="ghost" size="icon">
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
               <PlusIcon className="h-5 w-5" />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add Area</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={onAddItem} variant="ghost" size="icon">
-              <PaperPlaneIcon className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add Item</p>
-          </TooltipContent>
-        </Tooltip>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {objectTypes.map((objectType) => (
+              <DropdownMenuItem
+                key={objectType.name}
+                onClick={() => onAddNode(objectType.name)}
+              >
+                <span className="mr-2 h-4 w-4">{getObjectTypeIcon(objectType.name)}</span>
+                Add {objectType.displayName}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
         <Tooltip>
           <TooltipTrigger asChild>
             <Button onClick={undo} variant="ghost" size="icon" disabled={past.length === 0}>

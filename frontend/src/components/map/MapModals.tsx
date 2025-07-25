@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import GeneratorModal from '../GeneratorModal';
-import EditElementModal from '../EditElementModal';
+import GenericEditModal from '../generation/GenericEditModal';
 import { type Node } from 'reactflow';
 
 interface MapModalsProps {
@@ -56,7 +56,7 @@ const MapModals: React.FC<MapModalsProps> = ({
         defaultObjectType="character"
         showObjectTypeSelector={true}
       />
-      <EditElementModal
+      <GenericEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={updateNodeData}

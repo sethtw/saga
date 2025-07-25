@@ -41,19 +41,10 @@ interface GenericObjectData {
   // Core fields that all objects should have
   name: string;
   description: string;
-  
-  // Character-specific fields (for backward compatibility)
-  stats?: CharacterStats;
-  race?: string;
-  class?: string;
-  background?: string;
-  alignment?: string;
-  personality?: string;
-  equipment?: string[];
-  
+
   // Generic fields that can be present on any object type
   [key: string]: any;
-  
+
   // LLM generation metadata
   llmMetadata?: LLMMetadata;
 }
@@ -61,16 +52,16 @@ interface GenericObjectData {
 // Extended node props to include object type information
 interface ObjectNodeProps extends NodeProps<GenericObjectData> {
   data: GenericObjectData & {
-    objectType?: string; // Object type identifier
+    objectType: string; // Object type identifier is now mandatory
   };
 }
 
-const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
+const GenericObjectNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
   const [isResizing, setIsResizing] = useState(false);
   const { getObjectTypeDefinition, getObjectTypeDisplayName, getObjectTypeIcon } = useObjectTypes();
 
-  // Determine object type (fallback to 'character' for backward compatibility)
-  const objectType = data.objectType || 'character';
+  // Determine object type
+  const { objectType } = data;
   const objectTypeDefinition = getObjectTypeDefinition(objectType);
 
   // Render field based on its configuration
@@ -126,7 +117,7 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
     }
   };
 
-  // Get display fields from object type definition or use character defaults
+  // Get display fields from object type definition
   const getDisplayFields = () => {
     if (objectTypeDefinition?.displayFields) {
       return objectTypeDefinition.displayFields
@@ -138,21 +129,14 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
             try {
               return field.condition(data);
             } catch {
-              return true;
+              return true; // Default to showing if condition fails
             }
           }
           return true;
         });
     }
-
-    // Fallback to character-style display for backward compatibility
-    return [
-      { key: 'race', label: 'Race', type: 'badge', priority: 1 },
-      { key: 'class', label: 'Class', type: 'badge', priority: 2 },
-      { key: 'description', label: 'Description', type: 'text', priority: 3 },
-      { key: 'stats', label: 'Stats', type: 'stats', priority: 4 },
-      { key: 'personality', label: 'Personality', type: 'text', priority: 5 },
-    ].filter(field => data[field.key]);
+    // No fallback - should always rely on the definition
+    return [];
   };
 
   const displayFields = getDisplayFields();
@@ -173,19 +157,15 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
         <BaseNodeHeader>
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-              {objectType !== 'character' && (
-                <span className="text-sm opacity-70">
-                  {getObjectTypeIcon(objectType)}
-                </span>
-              )}
-              <BaseNodeHeaderTitle>{data.name}</BaseNodeHeaderTitle>
+              <span className="text-sm opacity-70">
+                {getObjectTypeIcon(objectType)}
+              </span>
+              <BaseNodeHeaderTitle>{data.name || 'Untitled'}</BaseNodeHeaderTitle>
             </div>
             <div className="flex items-center gap-1">
-              {objectType !== 'character' && (
-                <Badge variant="outline" className="text-xs">
-                  {getObjectTypeDisplayName(objectType)}
-                </Badge>
-              )}
+              <Badge variant="outline" className="text-xs">
+                {getObjectTypeDisplayName(objectType)}
+              </Badge>
               {data.llmMetadata && (
                 <Tooltip>
                   <TooltipTrigger>
@@ -211,14 +191,6 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
         
         <BaseNodeContent>
           <div className="space-y-2">
-            {/* Handle character-specific display for backward compatibility */}
-            {objectType === 'character' && data.race && data.class && (
-              <div className="flex gap-1 flex-wrap">
-                <Badge variant="outline" className="text-xs">{data.race}</Badge>
-                <Badge variant="outline" className="text-xs">{data.class}</Badge>
-              </div>
-            )}
-            
             {/* Main description */}
             <p className="text-sm text-muted-foreground line-clamp-3">
               {data.description}
@@ -227,6 +199,7 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
             {/* Render fields based on object type definition */}
             {displayFields.map((field) => {
               const value = data[field.key];
+              // Don't render name/description again as they are in standard locations
               if (!value || field.key === 'name' || field.key === 'description') return null;
               
               return (
@@ -235,18 +208,6 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
                 </div>
               );
             })}
-            
-            {/* Fallback for any additional important fields not in display config */}
-            {objectType !== 'character' && (
-              <>
-                {data.type && data.type !== objectType && (
-                  <Badge variant="outline" className="text-xs">{data.type}</Badge>
-                )}
-                {data.category && (
-                  <Badge variant="outline" className="text-xs">{data.category}</Badge>
-                )}
-              </>
-            )}
           </div>
         </BaseNodeContent>
         
@@ -256,4 +217,4 @@ const CharacterNode: React.FC<ObjectNodeProps> = ({ data, selected }) => {
   );
 };
 
-export default memo(CharacterNode); 
+export default memo(GenericObjectNode); 

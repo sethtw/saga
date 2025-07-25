@@ -19,7 +19,7 @@ export const useMapInteraction = () => {
 
   // Use the new generic object generation system
   const { generateObject, generateCharacter, isGenerating, error: objectGenerationError } = useObjectGeneration();
-  const { getObjectTypeDisplayName } = useObjectTypes();
+  const { getObjectTypeDefinition, getObjectTypeDisplayName } = useObjectTypes();
 
   const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
@@ -145,29 +145,37 @@ export const useMapInteraction = () => {
     return handleGenerateSubmit(prompt, provider, objectType);
   }, [handleGenerateSubmit]);
 
-  const handleAddNode = useCallback(async (type: 'area' | 'item' = 'area') => {
+  const handleAddNode = useCallback(async (objectType: string) => {
     const position = {
       x: Math.random() * 400 - 200,
       y: Math.random() * 400 - 200,
     };
-    const data = type === 'area'
-      ? { label: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` }
-      : { name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}` };
+    
+    // Use the object type definition to get default data
+    const definition = await getObjectTypeDefinition(objectType);
+    const displayName = definition?.displayName || objectType.charAt(0).toUpperCase() + objectType.slice(1);
+
+    const data = {
+      name: `New ${displayName}`,
+      description: `A new ${displayName}.`,
+      objectType: objectType,
+      ...(definition?.defaultData || {}),
+    };
 
     try {
       const newNode: Node = {
         id: nanoid(),
-        type,
+        type: objectType,
         position,
         data,
       };
       addNode(newNode);
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} created successfully!`);
+      toast.success(`${displayName} created successfully!`);
     } catch (error) {
-      console.error(`Failed to create ${type}:`, error);
-      toast.error(`Failed to create ${type}. Please try again.`);
+      console.error(`Failed to create ${objectType}:`, error);
+      toast.error(`Failed to create ${displayName}. Please try again.`);
     }
-  }, [addNode]);
+  }, [addNode, getObjectTypeDefinition]);
 
   const handleAlign = (alignment: Alignment) => {
     const { getNodes } = (window as any).reactFlowStore.getState();

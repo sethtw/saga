@@ -14,15 +14,18 @@ import 'reactflow/dist/style.css';
 import useMapStore from '@/store/mapStore';
 import useHistoryStore from '@/store/historyStore';
 import AreaNode from '@/components/nodes/AreaNode';
-import CharacterNode from '@/components/nodes/CharacterNode';
+import GenericObjectNode from '@/components/nodes/GenericObjectNode';
 import ItemNode from '@/components/nodes/ItemNode';
 import CustomEdge from '@/components/CustomEdge';
 import { useTheme } from '@/hooks/useTheme';
 
 const nodeTypes = {
   area: AreaNode,
-  character: CharacterNode,
+  character: GenericObjectNode,
   item: ItemNode,
+  // Add other generic types here as needed
+  npc: GenericObjectNode,
+  monster: GenericObjectNode,
 };
 
 const edgeTypes = {
