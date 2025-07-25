@@ -39,16 +39,19 @@ export const useLLMProviders = () => {
       setLoading(true);
       setError(null);
       const response = await api.getAvailableProviders();
-      setProviders(response.providers);
+      // API returns array directly, not wrapped in an object
+      const providersArray = Array.isArray(response) ? response : [];
+      setProviders(providersArray);
       
       // Set default provider to first available one
-      const availableProvider = response.providers.find((p: LLMProvider) => p.available && p.enabled);
+      const availableProvider = providersArray.find((p: LLMProvider) => p.available && p.enabled);
       if (availableProvider && !selectedProvider) {
         setSelectedProvider(availableProvider.name);
       }
     } catch (err) {
       console.error('Failed to load LLM providers:', err);
       setError('Failed to load LLM providers');
+      setProviders([]); // Set to empty array on error
     } finally {
       setLoading(false);
     }

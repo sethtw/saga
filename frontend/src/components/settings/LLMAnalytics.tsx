@@ -140,7 +140,7 @@ const LLMAnalytics: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {Object.entries(usageStats.providerBreakdown).map(([provider, stats]) => (
+                      {usageStats && usageStats.providerBreakdown ? Object.entries(usageStats.providerBreakdown).map(([provider, stats]) => (
                         <div key={provider} className="flex items-center justify-between p-3 border rounded">
                           <div className="flex items-center gap-3">
                             <Badge variant="secondary">{provider}</Badge>
@@ -156,7 +156,11 @@ const LLMAnalytics: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center py-4 text-muted-foreground">
+                          No provider breakdown data available
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -170,7 +174,7 @@ const LLMAnalytics: React.FC = () => {
 
           <TabsContent value="providers" className="space-y-4">
             <div className="space-y-3">
-              {providers.map((provider) => {
+              {providers && providers.length > 0 ? providers.map((provider) => {
                 const costInfo = getProviderCostInfo(provider.name);
                 const testResult = testResults?.[provider.name];
                 
@@ -208,7 +212,15 @@ const LLMAnalytics: React.FC = () => {
                     </CardContent>
                   </Card>
                 );
-              })}
+              }) : (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center text-muted-foreground">
+                      {loading ? 'Loading providers...' : 'No providers available. Please check your configuration.'}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
@@ -222,7 +234,7 @@ const LLMAnalytics: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {providers.filter(p => p.available && p.enabled).map((provider) => (
+                  {providers && providers.length > 0 ? providers.filter(p => p.available && p.enabled).map((provider) => (
                     <div key={provider.name} className="flex items-center space-x-3">
                       <input
                         type="radio"
@@ -246,7 +258,11 @@ const LLMAnalytics: React.FC = () => {
                         </div>
                       </label>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No available providers for selection
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
