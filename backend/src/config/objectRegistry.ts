@@ -170,10 +170,18 @@ export async function autoRegisterObjectTypes(directory: string = 'objectTypes')
   try {
     console.log(`🔍 Auto-registering object types from: ${directory}`);
     
-    // Register the character definition (for now, manual registration)
-    // TODO: Make this truly dynamic when we have more object types
+    // Register object type definitions
     const { characterDefinition } = await import('./objectTypes/character');
+    const { npcDefinition } = await import('./objectTypes/npc');
+    const { monsterDefinition } = await import('./objectTypes/monster');
+    const { areaDefinition } = await import('./objectTypes/area');
+    const { itemDefinition } = await import('./objectTypes/item');
+    
     objectRegistry.register(characterDefinition);
+    objectRegistry.register(npcDefinition);
+    objectRegistry.register(monsterDefinition);
+    objectRegistry.register(areaDefinition);
+    objectRegistry.register(itemDefinition);
     
     objectRegistry.markInitialized();
     
