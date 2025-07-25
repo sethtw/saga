@@ -31,10 +31,10 @@ INSTRUCTIONS:
 6. Ensure the character feels authentic to the setting
 
 REQUIRED OUTPUT FORMAT:
-Return ONLY a valid JSON object with the following structure (no additional text, explanations, or markdown):
+Return ONLY a valid JSON object. Escape (\") any double-quotes in the key-value content. The JSON object must match the following structure (no additional text, explanations, or markdown):
 
 {
-  "name": "Character's full name",
+  "name": "Character's \"full\" name",
   "description": "A detailed description of the character's appearance, personality, and background (2-4 sentences)",
   "stats": {
     "str": 10,

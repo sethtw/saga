@@ -10,7 +10,7 @@ import { type Alignment } from '@/components/AlignmentToolbar';
 import { useObjectGeneration } from '@/hooks/useObjectGeneration';
 import { useObjectTypes } from '@/hooks/useObjectTypes';
 
-export const useMapInteraction = () => {
+export const useMapInteraction = (campaignId?: string) => {
   const { menu, setMenu, addNode, deleteNode, updateNodeData, onNodesChange } = useMapStore();
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,6 +32,7 @@ export const useMapInteraction = () => {
 
     if (action === 'generate-character') {
       setIsGeneratorOpen(true);
+      setSelectedNode(node);
     } else if (action === 'edit-element') {
       setSelectedNode(node);
       setIsEditModalOpen(true);
@@ -56,9 +57,8 @@ export const useMapInteraction = () => {
     provider?: string, 
     objectType: string = 'character'
   ) => {
-    if (!menu) return;
+    if (!selectedNode) return;
 
-    const { campaignId } = (window as any).location.pathname.match(/\/campaigns\/(\d+)/) || [];
     if (!campaignId) {
       toast.error('No campaign ID found');
       return;
@@ -75,7 +75,7 @@ export const useMapInteraction = () => {
       const result = await generateObject(
         objectType,
         prompt,
-        menu.node.id,
+        selectedNode.id,
         campaignId,
         provider
       );
@@ -90,7 +90,7 @@ export const useMapInteraction = () => {
       const newNode: Node = {
         id: result.id,
         type: 'character', // Use character node for all generated objects
-        position: { x: menu.node.position.x + 50, y: menu.node.position.y + 100 },
+        position: { x: selectedNode.position.x + 50, y: selectedNode.position.y + 100 },
         data: {
           ...result.data,
           // Add object type information for the node
@@ -98,7 +98,7 @@ export const useMapInteraction = () => {
           // Store LLM metadata for analytics and tooltips
           llmMetadata: result.metadata
         },
-        parentId: menu.node.id,
+        parentId: selectedNode.id,
         extent: 'parent',
       };
 
@@ -130,7 +130,7 @@ export const useMapInteraction = () => {
       setGenerationError(errorMessage);
       toast.error(errorMessage);
     }
-  }, [addNode, menu, generateObject, getObjectTypeDisplayName]);
+  }, [addNode, selectedNode, generateObject, getObjectTypeDisplayName, campaignId]);
 
   // Backward compatibility method for character generation
   const handleGenerateCharacterSubmit = useCallback(async (prompt: string, provider?: string) => {

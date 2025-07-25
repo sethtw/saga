@@ -42,39 +42,39 @@ Create a detailed, memorable NPC that fits naturally into the provided setting c
 - **Charisma** (1-10): Their social skills and ability to persuade/charm others
 
 **RESPONSE FORMAT:**
-Respond with a valid JSON object containing these exact fields:
+Respond with a valid YAML object containing these exact fields:
 
-```json
-{
-  "name": "Full name of the NPC",
-  "description": "2-3 sentence physical and behavioral description",
-  "background": "Their history, how they ended up in their current situation",
-  "occupation": "Their job or role in society",
-  "personality": "Detailed personality traits, quirks, and mannerisms",
-  "motivations": ["Primary goal or desire", "Secondary motivation", "Hidden agenda or fear"],
-  "relationships": [
-    {
-      "name": "Related person's name",
-      "relationship": "Type of relationship (friend, rival, family, etc.)",
-      "attitude": "friendly|neutral|hostile|unknown"
-    }
-  ],
-  "secrets": ["Something they're hiding", "Another secret they keep"],
-  "socialStats": {
-    "influence": 5,
-    "wealth": 5, 
-    "knowledge": 5,
-    "charisma": 5
-  },
-  "dialogue": {
-    "greeting": "What they typically say when meeting someone new",
-    "catchphrase": "A phrase they often repeat or are known for",
-    "speechPattern": "How they speak (formal, casual, accent, etc.)"
-  },
-  "location": "Where they can typically be found",
-  "availability": "When they can be found (daytime, evenings, certain days)",
-  "questHooks": ["Potential quest or story opportunity", "Another way to involve them in adventures"]
-}
+```yaml
+name: "Full name of the NPC"
+description: "2-3 sentence physical and behavioral description"
+background: "Their history, how they ended up in their current situation"
+occupation: "Their job or role in society"
+personality: "Detailed personality traits, quirks, and mannerisms"
+motivations:
+  - "Primary goal or desire"
+  - "Secondary motivation"
+  - "Hidden agenda or fear"
+relationships:
+  - name: "Related person's name"
+    relationship: "Type of relationship (friend, rival, family, etc.)"
+    attitude: "friendly|neutral|hostile|unknown"
+secrets:
+  - "Something they're hiding"
+  - "Another secret they keep"
+socialStats:
+  influence: 5
+  wealth: 5
+  knowledge: 5
+  charisma: 5
+dialogue:
+  greeting: "What they typically say when meeting someone new"
+  catchphrase: "A phrase they often repeat or are known for"
+  speechPattern: "How they speak (formal, casual, accent, etc.)"
+location: "Where they can typically be found"
+availability: "When they can be found (daytime, evenings, certain days)"
+questHooks:
+  - "Potential quest or story opportunity"
+  - "Another way to involve them in adventures"
 ```
 
 **IMPORTANT:** 

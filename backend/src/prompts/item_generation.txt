@@ -46,60 +46,59 @@ Create a detailed item that fits naturally into the provided setting context. Fo
 - **Artifact**: Unique items of cosmic significance
 
 **RESPONSE FORMAT:**
-Respond with a valid JSON object containing these exact fields:
+Respond with a valid YAML object containing these exact fields:
 
-```json
-{
-  "name": "Item name",
-  "description": "Detailed physical description and appearance",
-  "type": "Primary item type (weapon, armor, tool, etc.)",
-  "category": "Specific category (longsword, plate armor, thieves' tools, etc.)",
-  "rarity": "Rarity level",
-  "value": {
-    "amount": 100,
-    "currency": "gp"
-  },
-  "weight": 3,
-  "properties": ["Property 1", "Property 2", "Magical"],
-  "magical": true,
-  "attunement": false,
-  "charges": {
-    "current": 3,
-    "maximum": 3,
-    "recharge": "1d3 charges at dawn"
-  },
-  "mechanics": {
-    "armorClass": 16,
-    "damage": "1d8+1",
-    "attackBonus": 1,
-    "damageBonus": 1,
-    "savingThrowDC": 13,
-    "range": "30 feet"
-  },
-  "abilities": [
-    {
-      "name": "Ability Name",
-      "description": "What this ability does and how to use it",
-      "usage": "Once per day|At will|3 charges per use"
-    }
-  ],
-  "history": "The story behind this item's creation and past owners",
-  "creator": "Who made this item originally",
-  "materials": ["Primary material", "Secondary components", "Magical elements"],
-  "crafting": {
-    "skill": "Required crafting skill",
-    "dc": 15,
-    "time": "Time required to craft",
-    "cost": "Materials cost in gold",
-    "components": ["Required components for crafting"]
-  },
-  "questHooks": ["Adventure opportunity related to this item", "Another potential story thread"],
-  "curse": {
-    "name": "Curse name (if applicable)",
-    "description": "What the curse does",
-    "removalMethod": "How to break or remove the curse"
-  }
-}
+```yaml
+name: "Item name"
+description: "Detailed physical description and appearance"
+type: "Primary item type (weapon, armor, tool, etc.)"
+category: "Specific category (longsword, plate armor, thieves' tools, etc.)"
+rarity: "Rarity level"
+value:
+  amount: 100
+  currency: "gp"
+weight: 3
+properties:
+  - "Property 1"
+  - "Property 2"
+  - "Magical"
+magical: true
+attunement: false
+charges:
+  current: 3
+  maximum: 3
+  recharge: "1d3 charges at dawn"
+mechanics:
+  armorClass: 16
+  damage: "1d8+1"
+  attackBonus: 1
+  damageBonus: 1
+  savingThrowDC: 13
+  range: "30 feet"
+abilities:
+  - name: "Ability Name"
+    description: "What this ability does and how to use it"
+    usage: "Once per day|At will|3 charges per use"
+history: "The story behind this item's creation and past owners"
+creator: "Who made this item originally"
+materials:
+  - "Primary material"
+  - "Secondary components"
+  - "Magical elements"
+crafting:
+  skill: "Required crafting skill"
+  dc: 15
+  time: "Time required to craft"
+  cost: "Materials cost in gold"
+  components:
+    - "Required components for crafting"
+questHooks:
+  - "Adventure opportunity related to this item"
+  - "Another potential story thread"
+curse:
+  name: "Curse name (if applicable)"
+  description: "What the curse does"
+  removalMethod: "How to break or remove the curse"
 ```
 
 **BALANCE GUIDELINES:**

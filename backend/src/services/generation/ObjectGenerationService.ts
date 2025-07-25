@@ -5,6 +5,7 @@ import { promptService } from '../promptService';
 import { objectRegistry } from '../../config/objectRegistry';
 import { GeneratedObject, GenerationMetadata, ObjectContext } from '../../types/objectTypes';
 import { LLMError } from '../llm/types';
+import { parse } from 'yaml';
 
 export class ObjectGenerationService {
   /**
@@ -84,7 +85,7 @@ export class ObjectGenerationService {
    */
   private extractJsonFromResponse(response: string): string {
     // Remove markdown code blocks if present
-    const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    const jsonMatch = response.match(/```(?:json|yaml)?\s*([\s\S]*?)\s*```/);
     if (jsonMatch) {
       return jsonMatch[1].trim();
     }
@@ -111,7 +112,7 @@ export class ObjectGenerationService {
       console.log(`--- Extracted JSON for ${objectType} ---`);
       console.log(cleanJsonString);
       
-      const parsed = JSON.parse(cleanJsonString);
+      const parsed = parse(cleanJsonString);
       
       // Use zod schema for validation
       const result = objectDefinition.zodSchema.safeParse(parsed);

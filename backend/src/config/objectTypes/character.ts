@@ -21,7 +21,7 @@ const CharacterGenerationSchema = z.object({
   stats: CharacterStatsSchema.optional(),
   race: z.string().max(50).optional(),
   class: z.string().max(50).optional(),
-  background: z.string().max(100).optional(),
+  background: z.string().max(2000).optional(),
   alignment: z.string().max(50).optional(),
   equipment: z.array(z.string()).optional(),
   personality: z.string().max(500).optional(),

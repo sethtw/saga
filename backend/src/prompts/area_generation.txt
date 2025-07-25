@@ -45,76 +45,68 @@ Create a detailed, atmospheric location that fits naturally into the provided se
 - **Vast**: Entire city district or geographic region
 
 **RESPONSE FORMAT:**
-Respond with a valid JSON object containing these exact fields:
+Respond with a valid YAML object containing these exact fields:
 
-```json
-{
-  "name": "Name of the location",
-  "description": "Rich, atmospheric description that sets the scene",
-  "type": "Type of location (city, dungeon, wilderness, etc.)",
-  "size": "Size category",
-  "climate": "Weather and seasonal patterns",
-  "terrain": ["Primary terrain type", "Secondary features"],
-  "atmosphere": "The mood and feeling of this place",
-  "history": "Important historical events that shaped this location",
-  "inhabitants": [
-    {
-      "name": "Group or individual name",
-      "type": "Type of inhabitant (humans, goblins, spirits, etc.)",
-      "population": "Rough population size or frequency"
-    }
-  ],
-  "landmarks": [
-    {
-      "name": "Notable landmark name",
-      "description": "What makes this landmark significant or memorable"
-    }
-  ],
-  "resources": ["Available materials", "Trade goods", "Natural resources"],
-  "dangers": [
-    {
-      "name": "Danger or threat name",
-      "description": "Description of the danger and its effects",
-      "severity": "Minor|Moderate|Major|Deadly"
-    }
-  ],
-  "secrets": ["Hidden knowledge about this place", "Another secret waiting to be discovered"],
-  "connections": [
-    {
-      "name": "Connected location name",
-      "direction": "Cardinal direction or relative position",
-      "distance": "Travel time or distance",
-      "travelMethod": "How to get there (road, trail, boat, etc.)"
-    }
-  ],
-  "events": [
-    {
-      "name": "Event or phenomenon name",
-      "description": "What happens and when",
-      "frequency": "How often this occurs"
-    }
-  ],
-  "economy": {
-    "primaryTrade": "Main economic activity",
-    "wealth": "Wealthy|Comfortable|Modest|Poor|Destitute",
-    "currency": "What they use for trade"
-  },
-  "government": {
-    "type": "Type of leadership or governance",
-    "leader": "Who's in charge",
-    "laws": ["Important local laws or customs"]
-  },
-  "culture": {
-    "customs": ["Local traditions and practices"],
-    "festivals": ["Celebrations and important dates"],
-    "beliefs": "Dominant religion, philosophy, or worldview"
-  },
-  "questHooks": ["Adventure opportunity that could start here", "Another potential quest or story thread"]
-}
+```yaml
+name: "Name of the location"
+description: "Rich, atmospheric description that sets the scene"
+type: "Type of location (city, dungeon, wilderness, etc.)"
+size: "Size category"
+climate: "Weather and seasonal patterns"
+terrain:
+  - "Primary terrain type"
+  - "Secondary features"
+atmosphere: "The mood and feeling of this place"
+history: "Important historical events that shaped this location"
+inhabitants:
+  - name: "Group or individual name"
+    type: "Type of inhabitant (humans, goblins, spirits, etc.)"
+    population: "Rough population size or frequency"
+landmarks:
+  - name: "Notable landmark name"
+    description: "What makes this landmark significant or memorable"
+resources:
+  - "Available materials"
+  - "Trade goods"
+  - "Natural resources"
+dangers:
+  - name: "Danger or threat name"
+    description: "Description of the danger and its effects"
+    severity: "Minor|Moderate|Major|Deadly"
+secrets:
+  - "Hidden knowledge about this place"
+  - "Another secret waiting to be discovered"
+connections:
+  - name: "Connected location name"
+    direction: "Cardinal direction or relative position"
+    distance: "Travel time or distance"
+    travelMethod: "How to get there (road, trail, boat, etc.)"
+events:
+  - name: "Event or phenomenon name"
+    description: "What happens and when"
+    frequency: "How often this occurs"
+economy:
+  primaryTrade: "Main economic activity"
+  wealth: "Wealthy|Comfortable|Modest|Poor|Destitute"
+  currency: "What they use for trade"
+government:
+  type: "Type of leadership or governance"
+  leader: "Who's in charge"
+  laws:
+    - "Important local laws or customs"
+culture:
+  customs:
+    - "Local traditions and practices"
+  festivals:
+    - "Celebrations and important dates"
+  beliefs: "Dominant religion, philosophy, or worldview"
+questHooks:
+  - "Adventure opportunity that could start here"
+  - "Another potential quest or story thread"
 ```
 
 **IMPORTANT:** 
-- Ensure the JSON is properly formatted and valid
+- Ensure the YAML is properly formatted and valid
 - Create vivid, immersive descriptions that engage multiple senses
 - Make the location feel lived-in and authentic
 - Include practical details that help DMs run adventures

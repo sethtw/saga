@@ -45,6 +45,7 @@ const MapModals: React.FC<MapModalsProps> = ({
 }) => {
   return (
     <>
+      {/* Generator Modal */}
       <GeneratorModal
         isOpen={isGeneratorOpen}
         onClose={() => {
@@ -56,12 +57,16 @@ const MapModals: React.FC<MapModalsProps> = ({
         defaultObjectType="character"
         showObjectTypeSelector={true}
       />
+
+      {/* Edit Element Modal */}
       <EditElementModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={updateNodeData}
         node={selectedNode}
       />
+      
+      {/* Unsaved Changes Modal */}
       <AlertDialog open={isUnsavedChangesModalOpen} onOpenChange={setIsUnsavedChangesModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -15,7 +15,7 @@ interface SettingsState {
 const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      autoSaveEnabled: true,
+      autoSaveEnabled: false,
       autoSaveInterval: 5000,
       theme: "system",
       setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),

@@ -43,7 +43,7 @@ const MapCanvas: React.FC = () => {
     isGenerating,
     generationError,
     setGenerationError,
-  } = useMapInteraction();
+  } = useMapInteraction(campaignId);
 
   const store = useStoreApi();
   useEffect(() => {

@@ -48,65 +48,64 @@ Create a detailed monster that fits naturally into the provided setting context.
 - CR 16+: Epic threats and campaign villains
 
 **RESPONSE FORMAT:**
-Respond with a valid JSON object containing these exact fields:
+Respond with a valid YAML object containing these exact fields:
 
-```json
-{
-  "name": "Name of the monster",
-  "description": "2-3 sentence physical description and behavior",
-  "type": "Creature type (Beast, Humanoid, Undead, etc.)",
-  "size": "Size category",
-  "alignment": "Alignment description",
-  "armorClass": 12,
-  "hitPoints": 25,
-  "speed": {
-    "walk": 30,
-    "fly": 0,
-    "swim": 0,
-    "climb": 0
-  },
-  "abilities": {
-    "strength": 14,
-    "dexterity": 12,
-    "constitution": 13,
-    "intelligence": 8,
-    "wisdom": 11,
-    "charisma": 10
-  },
-  "savingThrows": ["Strength +4", "Constitution +3"],
-  "skills": ["Stealth +3", "Perception +2"],
-  "damageResistances": ["Cold", "Fire"],
-  "damageImmunities": [],
-  "conditionImmunities": ["Charmed"],
-  "senses": ["Darkvision 60 ft", "Passive Perception 12"],
-  "languages": ["Common", "Draconic"],
-  "challengeRating": "1",
-  "proficiencyBonus": 2,
-  "specialAbilities": [
-    {
-      "name": "Special Ability Name",
-      "description": "Detailed description of what this ability does"
-    }
-  ],
-  "actions": [
-    {
-      "name": "Attack Name",
-      "description": "Attack description with range, hit bonus, and damage",
-      "attackBonus": 5,
-      "damage": "1d8+3 slashing"
-    }
-  ],
-  "legendaryActions": [
-    {
-      "name": "Legendary Action Name",
-      "description": "What this legendary action does",
-      "cost": 1
-    }
-  ],
-  "tactics": "How this creature fights, its preferred strategies and environment",
-  "habitat": "Where this creature typically lives and hunts",
-  "loot": ["Possible treasure or materials the creature might have"]
-}
+```yaml
+name: "Name of the monster"
+description: "2-3 sentence physical description and behavior"
+type: "Creature type (Beast, Humanoid, Undead, etc.)"
+size: "Size category"
+alignment: "Alignment description"
+armorClass: 12
+hitPoints: 25
+speed:
+  walk: 30
+  fly: 0
+  swim: 0
+  climb: 0
+abilities:
+  strength: 14
+  dexterity: 12
+  constitution: 13
+  intelligence: 8
+  wisdom: 11
+  charisma: 10
+savingThrows:
+  - "Strength +4"
+  - "Constitution +3"
+skills:
+  - "Stealth +3"
+  - "Perception +2"
+damageResistances:
+  - "Cold"
+  - "Fire"
+damageImmunities: []
+conditionImmunities:
+  - "Charmed"
+senses:
+  - "Darkvision 60 ft"
+  - "Passive Perception 12"
+languages:
+  - "Common"
+  - "Draconic"
+challengeRating: "1"
+proficiencyBonus: 2
+specialAbilities:
+  - name: "Special Ability Name"
+    description: "Detailed description of what this ability does"
+actions:
+  - name: "Attack Name"
+    description: "Attack description with range, hit bonus, and damage"
+    attackBonus: 5
+    damage: "1d8+3 slashing"
+legendaryActions:
+  - name: "Legendary Action Name"
+    description: "What this legendary action does"
+    cost: 1
+tactics: "How this creature fights, its preferred strategies and environment"
+habitat: "Where this creature typically lives and hunts"
+loot:
+  - "Possible treasure or materials the creature might have"
 ```
 
 **IMPORTANT:** 

@@ -1,6 +1,7 @@
 import { type Node, type Edge } from 'reactflow';
 import { type Campaign } from '../types/campaign';
 import { type ObjectTypeDefinition, type GeneratedObject } from '../types/objectTypes';
+import { parse } from 'yaml';
 
 /**
  * @file api.ts
@@ -152,8 +153,9 @@ export const api = {
       const error = await response.json();
       throw new Error(error.error || `${objectType} generation failed`);
     }
-    
-    return response.json();
+    const data = await response.text();
+    const yaml = parse(data);
+    return yaml;
   },
 
   // Object Type Discovery
